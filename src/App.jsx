@@ -7,6 +7,9 @@ import PatientRegistration from './components/PatientRegistration'
 import Appointment from './components/Apointment'
 import PatientList from './components/PatientList'
 import PatientDetails from './components/PatiendDetails'
+import DoctorRegistration from './components/Doctor'
+import MainLayout from './components/MainLayout'
+import MainLayoutAlt from './components/MainLayouAlt'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,13 +19,23 @@ function App() {
     {
       /*
         <Login />
-          <Dashboard />
-           <PatientRegistration />
-            <Appointment />
-             <PatientList />
+           
+         <Appointment />
+         <PatientDetails />
+         <PatientList /> 
+         <PatientRegistration />
+         <DoctorRegistration />
+            
+                    <MainLayoutAlt />  
+
+         
+ <Dashboard />
+  <MainLayout />
       */
-    <PatientDetails />
-    
+       <Appointment />
+      
+
+      
     }
     
      
