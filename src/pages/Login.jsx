@@ -1,5 +1,33 @@
+import axios from '../api/axios';
+import { jwtDecode } from 'jwt-decode'
+import { useDispatch } from 'react-redux'
+import { setAccessToken, setRefreshToken } from '../state/tokenSlice'
+import { setLicenseInfo } from '../state/messagesSlice'
+import { setUserDetail } from '../state/userSlice'
+import { setLookups } from '../state/lookupsSlice';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 export default function Login() {
-  const handleSubmit = (event) => {
+
+  const [error, setError] = useState("")
+  const dispatch = useDispatch()
+  const userRef = useRef()
+  const BASE_URL = import.meta.env.VITE_APP_BASE_URL
+
+  const LOGIN_URL = BASE_URL + "/auth/login"
+  const LOOKUP_URL = BASE_URL + "/lookups/get-all-lookups"
+
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const from = location.state?.pathname || '/'
+
+  useEffect(() => {
+    userRef.current.focus()
+  })
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -8,21 +36,58 @@ export default function Login() {
     const remember = formData.get('remember') === 'on';
 
     if (!identity || !password) {
-      window.alert('Please enter both Email/Staff ID and Password.');
+      setError("Please enter both email and password")
       return;
+    } else {
+      setError("")
     }
 
-    window.alert(
-      'Login submitted for ' +
-        identity +
-        (remember ? ' with Remember Me enabled.' : '.')
-    );
+    try {
+      const response = await axios.post(LOGIN_URL, JSON.stringify({ email, password }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+
+          withCredentials: true
+        })
+
+        let requestErr = ''
+        if (response.status === 200){
+          dispatch(setAccessToken(response.data.accessToken))
+          dispatch(setRefreshToken(response.data.refreshToken))
+          dispatch(setLicenseInfo(response.data.licensingInfo))
+
+          const userInfo = jwtDecode(response.data?.accessToken)
+          dispatch(setUserDetail({ userName: userInfo.userName, userId: userInfo.userId, tenantId: userInfo.tenantId, roles: userInfo.roles }))
+
+          const lookupsResponse = await axios.get(LOOKUP_URL, null, { headers: { 'Content-Type': 'application/json' } })
+          if (lookupsResponse.status === 200) {
+            dispatch(setLookups(lookupsResponse.data))
+            navigate (from, {replace: true})
+          }else{
+            setError(lookupsResponse)
+          }
+
+        }else{
+          setError(response)
+        }
+
+    } catch (err) {
+         if (!err?.response) {
+          setError('No Server Response');
+        } else if (err.response?.status === 400) {
+          setError('Missing Username or Password');
+        } else if (err.response?.status === 401) {
+          setError('Unathorized');
+        } else {
+          setError('Login Failed: ' + err.response.data.error.message);
+        }
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <section className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-sky-700 to-cyan-500 text-white p-10">
+        <section className="hidden lg:flex flex-col justify-between bg-linear-to-br from-sky-700 to-cyan-500 text-white p-10">
           <div>
             <div className="text-sm uppercase tracking-[0.25em] opacity-80">
               Hospital Management System
@@ -65,9 +130,16 @@ export default function Login() {
               <h2 className="mt-4 text-3xl font-bold text-slate-900">
                 Welcome back
               </h2>
+              {
+                !error?
               <p className="mt-2 text-slate-600">
-                Sign in to continue to the hospital dashboard.
+                Sign in to continue.
               </p>
+              :
+              <p className="mt-2 text-danger text-red-700">
+                {error} 
+              </p>
+}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -76,9 +148,10 @@ export default function Login() {
                   htmlFor="identity"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  Email or Staff ID
+                  Login ID
                 </label>
                 <input
+                  ref={userRef}
                   id="identity"
                   name="identity"
                   type="text"
@@ -132,25 +205,7 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-800">
-                Demo roles for design preview
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-600">
-                <div className="rounded-xl bg-white p-3 border border-slate-200">
-                  Receptionist
-                </div>
-                <div className="rounded-xl bg-white p-3 border border-slate-200">
-                  Doctor
-                </div>
-                <div className="rounded-xl bg-white p-3 border border-slate-200">
-                  Pharmacist
-                </div>
-                <div className="rounded-xl bg-white p-3 border border-slate-200">
-                  Administrator
-                </div>
-              </div>
-            </div>
+
 
             <p className="mt-6 text-center text-xs text-slate-500">
               Protected hospital access. Authorized users only.

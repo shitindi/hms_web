@@ -1,42 +1,64 @@
+import { useEffect, useState } from "react";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+
 export default function PatientList() {
-  const patients = [
-    {
-      id: 'HMS-2041',
-      name: 'Amina Hassan',
-      gender: 'Female',
-      age: 29,
-      phone: '+255 712 345 678',
-      department: 'General Medicine',
-      doctor: 'Dr. Michael',
-      status: 'Active',
-      visitType: 'Outpatient',
-      lastVisit: '27 Mar 2026',
-    },
-    {
-      id: 'HMS-1988',
-      name: 'John Peter',
-      gender: 'Male',
-      age: 8,
-      phone: '+255 754 456 111',
-      department: 'Pediatrics',
-      doctor: 'Dr. Neema',
-      status: 'Waiting',
-      visitType: 'Outpatient',
-      lastVisit: '27 Mar 2026',
-    },
-    {
-      id: 'HMS-1872',
-      name: 'Grace Daniel',
-      gender: 'Female',
-      age: 54,
-      phone: '+255 768 100 222',
-      department: 'Cardiology',
-      doctor: 'Dr. Joseph',
-      status: 'In Consultation',
-      visitType: 'Review',
-      lastVisit: '26 Mar 2026',
-    },
-  ];
+
+  const axios = useAxiosPrivate();
+
+  let api_message = {
+    success: false,
+    message: ''
+  }
+
+  let edit_form = {
+    load_form: false,
+    is_new: false,
+    is_edit: true,
+    entity: {}
+  }
+
+  const [apiMessage, setApiMessage] = useState({})
+  const [editForm, setEditForm] = useState(edit_form)
+  const [entities, setEntities] = useState([])
+
+  const handleEditEntity = id => {
+    const entity = entities.filter(dat => dat.id === id)
+    setEditForm({load_form: true, is_new:false, is_edit: true, entity: entity[0]})
+  }
+
+  const handleSetEditform = () => {
+    setEditForm({...editForm, load_form: false})
+  }
+
+  const handleAddNew = () => {
+    setEditForm({load_form: true, is_new: true, is_edit: false, entity: {}})
+  }
+
+
+  useEffect (() => {
+    const fetchPattients = async () => {
+      try{
+        const entityResult = await axios.get('/health/patients')
+        if (entityResult.status === 200){
+          api_message.success = true
+          api_message.message = entityResult?.data?.lenght ?? 0 + ' records found'
+          setApiMessage(api_message)
+          setEntities(entityResult.data)
+        }else{
+          api_message.success = false
+          api_message.message = 'Unable to get list of items: error - ' + entityResult.status
+        }
+      }catch(err){
+        api_message.success = false
+        api_message.message = err.response.data.error.message
+        setApiMessage(api_message)
+      }
+    }
+
+    fetchPattients()
+  }, [])
+
+  const patients  = entities
 
   const getStatusClasses = (status) => {
     if (status === 'Active')
@@ -91,9 +113,9 @@ export default function PatientList() {
             <thead className="bg-slate-50 text-left">
               <tr>
                 <th className="p-4">Patient</th>
-                <th className="p-4">ID</th>
-                <th className="p-4">Department</th>
-                <th className="p-4">Doctor</th>
+                <th className="p-4">Registration No</th>
+                <th className="p-4">Joining Date</th>
+                <th className="p-4">Registered By</th>
                 <th className="p-4">Last Visit</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Actions</th>

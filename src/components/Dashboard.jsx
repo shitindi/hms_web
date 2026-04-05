@@ -70,75 +70,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <div className="flex min-h-screen">
-        <aside className="hidden lg:flex w-72 flex-col bg-slate-900 text-slate-100 p-6">
-          <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-sky-300">
-              Hospital Management System
-            </div>
-            <h1 className="mt-3 text-2xl font-bold">MediCare HMS</h1>
-          </div>
-
-          <nav className="mt-10 space-y-2 text-sm">
-            <button className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-left font-medium">
-              Dashboard
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Patients
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Appointments
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Doctors
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Laboratory
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Pharmacy
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Billing
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Admissions
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Reports
-            </button>
-            <button className="w-full rounded-2xl px-4 py-3 text-left text-slate-300 hover:bg-slate-800">
-              Settings
-            </button>
-          </nav>
-
-          <div className="mt-auto rounded-3xl bg-slate-800 p-4">
-            <div className="text-sm font-semibold">Administrator</div>
-            <div className="mt-1 text-xs text-slate-400">admin@hospital.org</div>
-          </div>
-        </aside>
-
+   
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm text-slate-500">Friday, 27 March 2026</p>
-              <h2 className="mt-1 text-3xl font-bold">Hospital Dashboard</h2>
-              <p className="mt-2 text-slate-600">
-                Monitor patients, appointments, billing, and operations in one place.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                placeholder="Search patients, invoices, doctors..."
-                className="w-full sm:w-80 rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              />
-              <button className="rounded-2xl bg-sky-600 px-5 py-3 font-medium text-white hover:bg-sky-700">
-                + New Patient
-              </button>
             </div>
           </header>
-
           <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((item) => (
               <div key={item.label} className="rounded-3xl bg-white p-5 shadow-sm border border-slate-200">
