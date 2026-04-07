@@ -31,11 +31,11 @@ export default function Login() {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const identity = (formData.get('identity') || '').toString().trim();
+    const email = (formData.get('identity') || '').toString().trim();
     const password = (formData.get('password') || '').toString().trim();
     const remember = formData.get('remember') === 'on';
 
-    if (!identity || !password) {
+    if (!email || !password) {
       setError("Please enter both email and password")
       return;
     } else {
@@ -43,7 +43,8 @@ export default function Login() {
     }
 
     try {
-      const response = await axios.post(LOGIN_URL, JSON.stringify({ email, password }),
+
+      const response = await axios.post(LOGIN_URL, JSON.stringify({email, password }),
         {
           headers: { 'Content-Type': 'application/json' },
 
@@ -72,6 +73,7 @@ export default function Login() {
         }
 
     } catch (err) {
+      console.error(err)
          if (!err?.response) {
           setError('No Server Response');
         } else if (err.response?.status === 400) {
@@ -90,7 +92,7 @@ export default function Login() {
         <section className="hidden lg:flex flex-col justify-between bg-linear-to-br from-sky-700 to-cyan-500 text-white p-10">
           <div>
             <div className="text-sm uppercase tracking-[0.25em] opacity-80">
-              Hospital Management System
+              Health Management System
             </div>
             <h1 className="mt-6 text-4xl font-bold leading-tight">
               Smart care starts with a secure login

@@ -1,9 +1,18 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Form, useNavigate } from "react-router-dom";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { MenuItem, TextField } from "@mui/material";
+import UserContext from "../context/UserProvider";
+import {resetPatients} from '../state/patientsSlice'
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+
+import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { getDbDate } from "../Utilities/DateTime";
 
 
 export default function PatientForm(props) {
@@ -17,6 +26,7 @@ export default function PatientForm(props) {
 
   const navigate = useNavigate()
   const axios = useAxiosPrivate()
+  const user = useContext(UserContext)
 
   const [form, setForm] = useState({
     id: entity?.id ?? 0,
@@ -32,25 +42,26 @@ export default function PatientForm(props) {
     contact_id: entity?.Contact?.id,
     contact_type: entity?.Contact?.contact_type ?? 3,
     gender_id: entity?.Contact?.gender_id,
-    tenant_id: entity?.Contact?.tenant_id,
+    tenant_id: userInfo?.tenantId ?? 0,
 
     id_type: entity?.id_type,
     id_number: entity?.id_number,
     marital_status: entity?.marital_status,
-    birth_date: entity?.birth_date ?? "01/01/1900",
+    birth_date: entity?.birth_date ,
     blood_group: entity?.blood_group,
     next_kin_name: entity?.next_kin_name,
     next_kin_type: entity?.next_kin_type,
     next_kin_phone: entity?.next_kin_phone,
     joining_date: entity?.joining_date,
     current_activity: entity?.current_activity ?? 1,
-    is_active: 1,
+    is_active: true,
     insurer_id: entity?.insurer_id,
     insurance_number: entity?.insurance_number
   })
 
-  const [errors, setErrors] = useState({})
-
+  const [errors, setErrors] = useState('')
+  const [dob, setDoB] = useState(form.birth_date ?? (new Date()))
+  const [joinDate, setJoinDate] = useState(form.joining_date ?? (new Date()))
   const dispatch = useDispatch()
 
   let api_message = {
@@ -61,14 +72,16 @@ export default function PatientForm(props) {
   const [apiMessage, setApiMessage] = useState({})
 
   const handleChange = (e) => {
+
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
+
   const validate = () => {
     const errs = {};
-    if (!form.first_name.trim()) errs.first_name = "Firt name is required"
-    if (!form.last_name.trim()) errs.last_name = "Last name is required"
-    if (!form.mobile_no.trim()) errs.mobile_no = "Mobile number is required";
+    if (!form.first_name?.trim()) errs.first_name = "Firt name is required"
+    if (!form.last_name?.trim()) errs.last_name = "Last name is required"
+    if (!form.mobile_no?.trim()) errs.mobile_no = "Mobile number is required";
     if (!form.gender_id) errors.gender_id = "Gender is required"
     if (!form.birth_date) errors.birth_date = "Birthdate is required"
     if (!form.next_kin_name) errors.next_kin_name = "Next of kin is required"
@@ -76,28 +89,40 @@ export default function PatientForm(props) {
     if (!form.next_kin_phone) errors.next_kin_phone = "Next of kin phone is required"
     return errs
   }
+ 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+  
 
     api_message.success = true
     api_message.message = "Patient registered successfuly"
 
+
+    window.scrollTo(0, 0)
+
+   form.birth_date= getDbDate( dob)
+     form.joining_date= getDbDate( joinDate)
+
     const errs = validate()
-    setErrors(errors)
+    setErrors(errs)
 
     if (Object.keys(errs).length === 0) {
+
       let response
       try {
-        response = await axios.post('/health/patient', form)
+        response = await axios.post('/patients/patient', form)
 
         if (response.status === 200) {
+
           api_message.success = true
           api_message.message = 'Patient record update successfuly!'
 
           setApiMessage(api_message)
           toast.success(api_message.message)
           setEditForm()
+          dispatch(resetPatients())
+          user.setState({...user.state, action: 4})
           navigate('/patients', { replace: true })
         } else {
           api_message.success = false
@@ -106,26 +131,31 @@ export default function PatientForm(props) {
           toast.error(api_message)
         }
       } catch (err) {
+        console.error('POST_ERROR: ', err)
         api_message.success = false
-        api_message = err.response.data.error.message
+        api_message.message ='ERROR: ' + err.response.data.error.message
         toast.error(api_message.message)
       }
     }
+
+
   };
 
-  const hanleCancel = (e) => {
+  const handleCancel = (e) => {
+
+    window.scrollTo(0, 0)
     setEditForm()
-    navigate('patients', { replace: true })
+    user.setState({ ...user.state, action: 4 })
+    navigate('/patients', { replace: true })
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-slate-100 ">
+      <div className="mx-auto max-w-7xl ">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm text-slate-500">Patients / Registration</p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-900">Patient Registration</h1>
-            <p className="mt-2 text-slate-600">
+            <h4 className="text-3xl font-bold text-slate-900">Patient Registration</h4>
+            <p className=" text-slate-600">
               Capture patient details, emergency contacts, insurance information, and initial visit data.
             </p>
 
@@ -134,7 +164,7 @@ export default function PatientForm(props) {
 
         </header>
 
-        <form onSubmit={handleSubmit} className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <form onSubmit={handleSubmit} className="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
 
           <div className="xl:col-span-3 space-y-6">
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -146,12 +176,11 @@ export default function PatientForm(props) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">Personal Information</h2>
-                  <p className="mt-1 text-sm text-slate-500">Basic identity and demographic details.</p>
                 </div>
 
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-10 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
 
                   <TextField
@@ -172,8 +201,8 @@ export default function PatientForm(props) {
                 <div>
 
                   <TextField
-                    size="small" name="last_name" error={!!errors.last_name} helperText={errors.last_name} required
-                    label="Last name"
+                    size="small" name="last_name" value={form.last_name} error={!!errors.last_name} helperText={errors.last_name} required
+                    label="Last name" onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
@@ -186,7 +215,7 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select gender</MenuItem>
                     {
-                      (genders && genders.lenght > 0) &&
+                      (genders && genders.length > 0) &&
                       genders.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
@@ -208,19 +237,21 @@ export default function PatientForm(props) {
                 </div>
 
                 <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
 
-                  <TextField
-
-                    size="small" required name="birth_date" value={form.birth_date} label="Date of birth"
-                    onChange={handleChange} error={!!errors.birth_date} helperText={errors.birth_date}
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
+                      size="small" required name="birth_date" value={dayjs(dob)} label="Date of birth"
+                      onChange={(date)=>setDoB(date)} error={!!errors.birth_date} helperText={errors.birth_date}
+                      className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </LocalizationProvider>
+                  
                 </div>
 
                 <div>
 
                   <TextField
-                    size="small" name="position" value={form.position}
+                    size="small" name="position" value={form.position} onChange={handleChange}
                     label="Occupation"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
@@ -245,7 +276,7 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select ID Type</MenuItem>
                     {
-                      (idTypes && idTypes.lenght > 0) &&
+                      (idTypes && idTypes.length > 0) &&
                       idTypes.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
@@ -266,7 +297,7 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select Status</MenuItem>
                     {
-                      (maritalStatuses && maritalStatuses.lenght > 0) &&
+                      (maritalStatuses && maritalStatuses.length > 0) &&
                       maritalStatuses.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
@@ -280,140 +311,133 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select Group</MenuItem>
                     {
-                      (bloodGroups && bloodGroups.lenght > 0) &&
+                      (bloodGroups && bloodGroups.length > 0) &&
                       bloodGroups.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
                 </div>
 
-              <div>
-                <TextField
-                  size="small" name="joining_date"  label=" Joining date" value={form.joining_date} onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                />
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                    size="small" name="joining_date" label=" Joining date" value={dayjs(joinDate)} onChange={(date)=>setJoinDate(date)}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                  </LocalizationProvider>
+                </div>
+
               </div>
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-slate-900">Emergency Contact & Insurance</h2>
+
+              <div className="mt-6 pb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <TextField
+                    size="small" name="next_kin_name" onChange={handleChange} error={!!errors.next_kin_name} helperText={errors.next_kin_name}
+                    label="Next of kin" value={form.next_kin_name}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+
+                  <TextField
+                    size="small" name="next_kin_type" label="Relation" placeholder="e.g. Mother, Brother, Spouse"
+                    onChange={handleChange} error={!!errors.next_kin_type} helperText={errors.next_kin_type} value={form.next_kin_type}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+
+                  <TextField
+                    size="small" name="next_kin_phone" type="tel" label="Next of kin phone" value={form.next_kin_phone}
+                    onChange={handleChange} error={!!errors.next_kin_phone} helperText={errors.next_kin_phone}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+                  <TextField
+                    size="small" select name="insurer_id" label="Insurer" value={form.insurer_id}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <MenuItem value="">Select Insurer</MenuItem>
+                    {
+                      (insurers && insurers.length > 0) &&
+                      insurers.map(item => <MenuItem value={item.id} key={item.id}>{item.name}</MenuItem>)
+                    }
+                  </TextField>
+                </div>
+
+                <div>
+                  <TextField
+                    size="small" name="insurance_number" type="tel" label="Insurance No" value={form.insurance_number}
+                    onChange={handleChange} 
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+
+                <div>
+
+
+                  <TextField
+                    size="small" select name="payment_type" label="Payment type" 
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <MenuItem value="">Select Insurer</MenuItem>
+                    <MenuItem value={1} key={1}>Cash</MenuItem>
+                    <MenuItem value={2} key={2}>Insurance</MenuItem>
+                    <MenuItem value={3} key={3}>Mobile Money</MenuItem>
+                    <MenuItem value={5} key={5}>Corporate</MenuItem>
+                  </TextField>
+                </div>
+
+
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-slate-900">Actions</h2>
+              <div className=" space-y-3 grid grid-cols-2" >
+                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div>
+                    <button
+                      type="submit"
+                      className="w-full rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700"
+                    >
+                      Register Patient
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div>
+                    <button
+                      type="button" onClick={handleCancel}
+                      className="w-full rounded-2xl border border-slate-300 bg-red-700 px-5 py-3 text-sm font-medium text-white hover:bg-red-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
 
           </div>
-        </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Emergency Contact & Insurance</h2>
+          <div className="space-y-6">
 
-          <div className="mt-6 grid grid-cols-1 gap-10 md:grid-cols-2">
-            <div>
-              <TextField
-                size="small"  name="next_kin_name" onChange={handleChange} error={!!errors.next_kin_name} helperText={errors.next_kin_name}
-                label="Next of kin"
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
 
-            <div>
 
-              <TextField
-                size="small" name="next_kin_type" label="Relation" placeholder="e.g. Mother, Brother, Spouse"
-                onChange={handleChange} error={!!errors.next_kin_type} helperText={errors.next_kin_type}
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-
-            <div>
-
-              <TextField
-                size="small"  name="next_kin_phone" type="tel"  label="Next of kin phone"
-                onChange={handleChange} error={!!errors.next_kin_phone} helperText={errors.next_kin_phone}
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="insurer_id" className="mb-2 block text-sm font-medium text-slate-700">
-                Insurance provider
-              </label>
-              <select
-                id="insurer_id"
-                name="insurer_id"
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="">Select provider</option>
-                <option>NHIF</option>
-                <option>Jubilee</option>
-                <option>Strategis</option>
-                <option>Heritage</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="insurance_number" className="mb-2 block text-sm font-medium text-slate-700">
-                Insurance Number
-              </label>
-              <input
-                id="insurance_number"
-                name="insurance_number"
-                type="text"
-                placeholder="Enter policy/member number"
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="paymentType" className="mb-2 block text-sm font-medium text-slate-700">
-                Payment Type
-              </label>
-              <select
-                id="paymentType"
-                name="paymentType"
-                className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="">Select payment type</option>
-                <option>Cash</option>
-                <option>Insurance</option>
-                <option>Mobile Money</option>
-                <option>Corporate</option>
-              </select>
-            </div>
 
 
           </div>
-        </section>
-
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Actions</h2>
-          <div className="mt-5 space-y-3 grid grid-cols-2" >
-            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <button
-                  type="submit"
-                  className="w-full rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700"
-                >
-                  Register Patient
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div>
-                <button
-                  type="button"
-                  className="w-full rounded-2xl border border-slate-300 bg-red-700 px-5 py-3 text-sm font-medium text-white hover:bg-red-800"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
-
-      <div className="space-y-6">
-
-
-
-
-
-      </div>
-    </form>
+        </form>
       </div >
     </div >
   );

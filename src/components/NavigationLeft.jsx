@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
+import UserContext from '../context/UserProvider';
 
 const NavigationLeft = () => {
+
+  const user = useContext(UserContext)
 
     const navigationItems = [
     {name:'Home', url: "/"},
@@ -30,6 +33,12 @@ const NavigationLeft = () => {
   const navigate = useNavigate()
 
   const handleLinkClick = (url, index) =>{
+    user.setState({
+        component: url.replace('/',''),
+        action: 4,    
+        entity_id: 0,
+        entities: []
+    })
     navigate(url)
     setMenuIndex(index)
 
