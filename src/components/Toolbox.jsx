@@ -8,6 +8,7 @@ import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import UserContext from '../context/UserProvider';
 import PatientMenu from './toolmenus/PatientMenu';
 import { useLocation } from 'react-router-dom';
+import DoctorMenu from './toolmenus/DoctorMenu';
 
 const Toolbox = () => {
 
@@ -19,8 +20,8 @@ const Toolbox = () => {
 
   const location = useLocation()
 
-  const [userInfo, doctors, patients] = useSelector(state => {
-    return [state.userroles, state.doctors, state.patients]
+  const [ doctors, patients] = useSelector(state => {
+    return [ state.doctors, state.patients]
   })
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const Toolbox = () => {
         if (doctors && doctors.lenght > 0)
           return
 
-        const entityResult = await axios.get('/health/doctors')
+        const entityResult = await axios.get('/doctors/doctors')
         if (entityResult.status === 200)
           dispatch(setDoctorsDetail(entityResult.data))
       } catch (err) {
@@ -42,7 +43,7 @@ const Toolbox = () => {
         if (patients && patients.lenght > 0)
           return
 
-        const entityResult = await axios.get('/health/patients')
+        const entityResult = await axios.get('/patients/patients')
         if (entityResult.status === 200)
           dispatch(setPatientsDetail(entityResult.data))
       } catch (err) {
@@ -64,13 +65,15 @@ const Toolbox = () => {
           return
         case 'patients':
           return <PatientMenu data={userContext.state} />
+         case 'doctors':
+          return <DoctorMenu data={userContext.state} />
         default:
          // return <PatientMenu />    
      }
   }
 
 
-  const profileMenuItems = ['Profile', 'Account Settings', 'Notifications', 'Help', 'Logout'];
+  //const profileMenuItems = ['Profile', 'Account Settings', 'Notifications', 'Help', 'Logout'];
 
 
   return (

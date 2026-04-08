@@ -35,7 +35,7 @@ const lookupsSlice = createSlice({
     initialState,
     reducers: {
         setLookups: (state, action) => action.payload,
-        resetLookups: (state) => initialState
+        resetLookups: () => initialState
     }
 });
 

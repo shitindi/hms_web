@@ -5,8 +5,8 @@ import { useContext, useState } from "react";
 import { toast } from "react-toastify";
 import { MenuItem, TextField } from "@mui/material";
 import UserContext from "../context/UserProvider";
-import {resetPatients} from '../state/patientsSlice'
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import {resetDoctors} from '../state/doctorsSlice'
+
 
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -15,13 +15,13 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { getDbDate } from "../Utilities/DateTime";
 
 
-export default function PatientForm(props) {
+export default function DoctorForm(props) {
 
   const { entity,  setEditForm } = props
 
-  const [userInfo, genders, idTypes, maritalStatuses, bloodGroups, insurers] = useSelector(state => {
-    return [state.userroles, state.lookups.genders, state.lookups.id_types,
-    state.lookups.marital_statuses, state.lookups.blood_groups, state.lookups.insurers]
+  const [userInfo, genders, idTypes, departments, specializations, employmentTypes] = useSelector(state => {
+    return [state.userroles, state.lookups.genders, state.lookups.id_types, 
+      state.lookups.departments, state.lookups.specializations, state.lookups.employment_types ]
   })
 
   const navigate = useNavigate()
@@ -29,7 +29,7 @@ export default function PatientForm(props) {
   const user = useContext(UserContext)
 
   const [form, setForm] = useState({
-    id: entity?.id ?? 0,
+    id: entity?.id ?? -1,
     first_name: entity?.Contact?.first_name,
     middle_name: entity?.Contact?.middle_name,
     last_name: entity?.Contact?.last_name,
@@ -44,23 +44,29 @@ export default function PatientForm(props) {
     gender_id: entity?.Contact?.gender_id,
     tenant_id: userInfo?.tenantId ?? 0,
 
+    user_name: entity.user_name,
+    password: entity.password,
+    confirm_password: entity.confirm_password,
+    must_change_password: entity?.must_change_password ?? false,
+    user_status = entity?.user_status ?? 1,
+
     id_type: entity?.id_type,
     id_number: entity?.id_number,
-    marital_status: entity?.marital_status,
+    doctor_id: entity?.id ?? -1,
+    user_id: entity?.user_id,
     birth_date: entity?.birth_date ,
-    blood_group: entity?.blood_group,
-    next_kin_name: entity?.next_kin_name,
-    next_kin_type: entity?.next_kin_type,
-    next_kin_phone: entity?.next_kin_phone,
+    doctor_id_no: entity?.doctor_id_no,
+    license_number: entity?.license_number,
+    department: entity?.department,
+    specialization: entity?.specialization,
+    hightest_qualification: entity?.hightest_qualification,
     joining_date: entity?.joining_date,
-    current_activity: entity?.current_activity ?? 13,
+    year_of_experience: entity?.year_of_experience ?? 0,
     is_active: true,
-    insurer_id: entity?.insurer_id,
-    insurance_number: entity?.insurance_number
+    employment_type: entity?.employment_type,
   })
 
   const [errors, setErrors] = useState('')
-  const [dob, setDoB] = useState(form.birth_date ?? (new Date()))
   const [joinDate, setJoinDate] = useState(form.joining_date ?? (new Date()))
   const dispatch = useDispatch()
 
@@ -295,8 +301,8 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select Status</MenuItem>
                     {
-                      (maritalStatuses && maritalStatuses.length > 0) &&
-                      maritalStatuses.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
+                      (departments && departments.length > 0) &&
+                      departments.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
                 </div>
@@ -309,8 +315,8 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select Group</MenuItem>
                     {
-                      (bloodGroups && bloodGroups.length > 0) &&
-                      bloodGroups.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
+                      (specializations && specializations.length > 0) &&
+                      specializations.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
                 </div>
@@ -365,8 +371,8 @@ export default function PatientForm(props) {
                   >
                     <MenuItem value="">Select Insurer</MenuItem>
                     {
-                      (insurers && insurers.length > 0) &&
-                      insurers.map(item => <MenuItem value={item.id} key={item.id}>{item.name}</MenuItem>)
+                      (employmentTypes && employmentTypes.length > 0) &&
+                      employmentTypes.map(item => <MenuItem value={item.id} key={item.id}>{item.name}</MenuItem>)
                     }
                   </TextField>
                 </div>

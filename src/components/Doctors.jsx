@@ -1,15 +1,14 @@
 import { useContext, useEffect, useState } from "react";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { getAgeFromBod } from "../Utilities/DateTime";
 import { Box, Modal, Paper, Tooltip, Typography } from "@mui/material";
-import PatientForm from "./PatientForm";
+import DoctorForm from "./DoctorForm";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
 import UserContext from "../context/UserProvider";
-import { setPatientsDetail } from "../state/patientsSlice";
+import { setDoctorsDetail} from "../state/doctorsSlice";
 import { BounceLoader } from 'react-spinners'
 
-export default function PatientList() {
+export default function DoctorsList() {
 
   const axios = useAxiosPrivate();
   const user = useContext(UserContext)
@@ -22,7 +21,7 @@ export default function PatientList() {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     //bgcolor: 'background.paper',
-    // border: '2px solid #000',
+   // border: '2px solid #000',
     //boxShadow: 24,
     p: 4,
   };
@@ -40,8 +39,8 @@ export default function PatientList() {
     status_id: null
   })
 
-  const [departments, statuses, patients] = useSelector(state => {
-    return [state.lookups.departments, state.lookups.patient_activities, state.patients]
+  const [departments,  doctors] = useSelector(state => {
+    return [state.lookups.departments,  state.doctors]
   })
 
   const [apiMessage, setApiMessage] = useState({
@@ -79,17 +78,17 @@ export default function PatientList() {
   useEffect(() => {
     const fetchPattients = async () => {
       try {
-        if (patients.length === entities.length)
+        if (doctors.length === entities.length)
           return
 
         setModalOpen(true)
-        const entityResult = await axios.get('/patients/patients')
+        const entityResult = await axios.get('/doctors/doctors')
         if (entityResult.status === 200) {
           const success = true
-          const message = (entityResult?.data?.length ?? 0) + ' record(s) found'
+          const message = entityResult?.data?.lenght ?? 0 + ' records found'
           setApiMessage({ success, message })
           setEntities(entityResult.data)
-          dispatch(setPatientsDetail(entityResult.data))
+          dispatch(setDoctorsDetail(entityResult.data))
         } else {
           const success = false
           const message = 'Unable to get list of items: error - ' + entityResult.status
@@ -104,26 +103,20 @@ export default function PatientList() {
     }
 
     fetchPattients()
-  }, [patients.length])
+  }, [doctors.length])
 
 
 
   const columns = [
     { field: 'id', headerName: 'ID', hideable: false },
-    { field: 'registration_no', headerName: 'Registration No.', width: 120 },
-    { field: 'patient', headerName: 'Patient', width: 150 },
+    { field: 'doctor', headerName: 'Doctor', width: 150 },
     { field: 'gender_id', headerName: 'Gender', width: 80 },
-    { field: 'age', headerName: 'Age', width: 80 },
-    { field: 'joining_date', headerName: 'Joining date.', width: 130 },
-    { field: 'created_by', headerName: 'Created By', width: 130 },
-    { field: 'last_visity', headerName: 'Last visit', width: 150 },
-    {
-      field: 'status', headerName: 'Status', width: 150,
-      renderCell: (params) =>
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusClasses(params.row.current_activity)}`}>
-          {(params.row.current_activity === 12 || params.row.current_activity === 13) ? 'Checked-out' : 'Checked-in'}
-        </span>
-    },
+    { field: 'doctor_id_no', headerName: 'Doctor ID #.', width: 120 },
+   // { field: 'department', headerName: 'Department', width: 150 },
+    { field: 'specialization', headerName: 'Specialization', width: 120 },
+    { field: 'joining_date', headerName: 'Joined on', width: 120 },
+    { field: 'employment_type', headerName: 'Employment ', width: 120 },
+    { field: 'created_by', headerName: 'Created By', width: 140 },
 
     {
       field: 'actions', headerName: 'Actions', width: 200,
@@ -143,25 +136,21 @@ export default function PatientList() {
     }
   ];
 
-
-  if (entities.length < patients.length) {
-    
-    setEntities(patients)
-  }
-  
+  if (entities.length < doctors.length)
+    setEntities(doctors)
 
   const rows = (entities || entities.length > 0) ?
     entities.map(p => (
       {
         id: p.id,
-        registration_no: p.registration_no,
-        patient: p.Contact.first_name + ' ' + p.Contact.last_name,
-        gender_id: p?.Contact?.Gender?.name,
-        age: getAgeFromBod(p.birth_date),
-        joining_date: p.joining_date,
-        current_activity: p.CurrentActivity.ID,
+        doctor: p.User.Contact.first_name + ' ' + p.User.Contact.last_name,
+        gender_id: p?.User.Contact?.Gender?.name,
+        doctor_id_no: p?.doctor_id_no,
+        //department: p?.Department.name,
+        specialization: p?.Specialization.name,
+        joining_date: p?.joining_date,
+        employment_type: p?.EmploymentType.name,
         created_by: p.CreatedBy.Contact.first_name + ' ' + p.CreatedBy.Contact.last_name,
-        last_visity: p.lastVisit,
 
       })
     )
@@ -169,23 +158,16 @@ export default function PatientList() {
 
   const paginationModel = { page: 0, pageSize: 20 };
 
-  const getStatusClasses = (status) => {
-    if (status === 12 || status === 13)
-      return 'bg-green-700 text-white border border-emerald-200';
-    else
-      return ' bg-yellow-500  text-black border border-emerald-200'
-  };
-
   return (
     editForm.load_form ?
-      <div ><PatientForm isEdit={editForm.is_edit} entity={editForm.entity} setEditForm={handleSetEditForm} /> </div> :
+      <div ><DoctorForm isEdit={editForm.is_edit} entity={editForm.entity} setEditForm={handleSetEditForm} /> </div> :
       <div className="min-h-screen bg-slate-100 ">
         <div className="max-w-7xl mx-auto">
 
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Patients</h1>
+              <h1 className="text-2xl font-bold">Doctors</h1>
               <h3>{apiMessage.message}</h3>
             </div>
 
@@ -202,13 +184,7 @@ export default function PatientList() {
               }
             </select>
 
-            <select className="border px-4 py-2 rounded-xl" value={comboFilter.status_id} name="status_id" onChange={setComboFilter}>
-              <option value="">All Status</option>
-              {
-                (statuses && statuses.length > 0) &&
-                statuses.map(item => <option value={item.ID} key={item.ID}>{item.name}</option>)
-              }
-            </select>
+            
           </div>
 
           {/* Table */}
