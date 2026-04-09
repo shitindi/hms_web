@@ -3,9 +3,9 @@ import { Form, useNavigate } from "react-router-dom";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useContext, useState } from "react";
 import { toast } from "react-toastify";
-import { MenuItem, TextField } from "@mui/material";
+import { Checkbox, MenuItem, TextField } from "@mui/material";
 import UserContext from "../context/UserProvider";
-import {resetDoctors} from '../state/doctorsSlice'
+import { resetDoctors } from '../state/doctorsSlice'
 
 
 import dayjs from 'dayjs';
@@ -17,11 +17,11 @@ import { getDbDate } from "../Utilities/DateTime";
 
 export default function DoctorForm(props) {
 
-  const { entity,  setEditForm } = props
+  const { entity, setEditForm } = props
 
   const [userInfo, genders, idTypes, departments, specializations, employmentTypes] = useSelector(state => {
-    return [state.userroles, state.lookups.genders, state.lookups.id_types, 
-      state.lookups.departments, state.lookups.specializations, state.lookups.employment_types ]
+    return [state.userroles, state.lookups.genders, state.lookups.id_types,
+    state.lookups.departments, state.lookups.specializations, state.lookups.employment_types]
   })
 
   const navigate = useNavigate()
@@ -40,7 +40,7 @@ export default function DoctorForm(props) {
     address: entity?.Contact?.address,
     created_by: entity?.CreatedBy?.id ?? userInfo.userId,
     contact_id: entity?.Contact?.id,
-    contact_type: entity?.Contact?.contact_type ?? 3,
+    contact_type: entity?.Contact?.contact_type ?? 1,
     gender_id: entity?.Contact?.gender_id,
     tenant_id: userInfo?.tenantId ?? 0,
 
@@ -48,13 +48,12 @@ export default function DoctorForm(props) {
     password: entity.password,
     confirm_password: entity.confirm_password,
     must_change_password: entity?.must_change_password ?? false,
-    user_status = entity?.user_status ?? 1,
+    user_status: entity?.user_status ?? 1,
 
     id_type: entity?.id_type,
     id_number: entity?.id_number,
     doctor_id: entity?.id ?? -1,
     user_id: entity?.user_id,
-    birth_date: entity?.birth_date ,
     doctor_id_no: entity?.doctor_id_no,
     license_number: entity?.license_number,
     department: entity?.department,
@@ -81,6 +80,10 @@ export default function DoctorForm(props) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
+  const handleCheck = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.checked });
+
+  }
 
   const validate = () => {
     const errs = {};
@@ -89,24 +92,23 @@ export default function DoctorForm(props) {
     if (!form.mobile_no?.trim()) errs.mobile_no = "Mobile number is required";
     if (!form.gender_id) errs.gender_id = "Gender is required"
     if (!form.birth_date) errs.birth_date = "Birthdate is required"
-    if (!form.next_kin_name) errs.next_kin_name = "Next of kin is required"
-    if (!form.next_kin_type) errs.next_kin_type = "Next of kin relation is required"
-    if (!form.next_kin_phone) errs.next_kin_phone = "Next of kin phone is required"
+    if (!form.user_name) errs.user_name = "User name is required"
+    if (form.password && form.password != form.confirm_password) errs.next_kin_type = "Password did not match"
     return errs
   }
- 
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
 
     let success = true
-    let message = "Patient registered successfuly"
+    let message = "Doctor registered successfuly"
 
 
     window.scrollTo(0, 0)
 
-     setForm({...form, birth_date:apiMessage, joining_date: getDbDate( joinDate)})
+    setForm({ ...form, joining_date: getDbDate(joinDate) })
 
     const errs = validate()
     setErrors(errs)
@@ -115,29 +117,29 @@ export default function DoctorForm(props) {
 
       let response
       try {
-        response = await axios.post('/patients/patient', form)
+        response = await axios.post('/doctors/doctor', form)
 
         if (response.status === 200) {
 
           success = true
-          message = 'Patient record update successfuly!'
+          message = 'Doctor record update successfuly!'
 
-          setApiMessage({success, message})
+          setApiMessage({ success, message })
           toast.success(message)
           setEditForm()
-          dispatch(resetPatients())
-          user.setState({...user.state, action: 4})
-          navigate('/patients', { replace: true })
+          dispatch(resetDoctors())
+          user.setState({ ...user.state, action: 4 })
+          navigate('/doctors', { replace: true })
         } else {
           success = false
           message = response.data
-          setApiMessage({success, message})
+          setApiMessage({ success, message })
           toast.error(message)
         }
       } catch (err) {
         console.error('POST_ERROR: ', err)
         success = false
-        message ='ERROR: ' + err.response.data.error.message
+        message = 'ERROR: ' + err.response.data.error.message
         toast.error(message)
       }
     }
@@ -150,7 +152,7 @@ export default function DoctorForm(props) {
     window.scrollTo(0, 0)
     setEditForm()
     user.setState({ ...user.state, action: 4 })
-    navigate('/patients', { replace: true })
+    navigate('/doctors', { replace: true })
   }
 
   return (
@@ -160,7 +162,7 @@ export default function DoctorForm(props) {
           <div>
             <h4 className="text-3xl font-bold text-slate-900">Patient Registration</h4>
             <p className=" text-slate-600">
-              Capture patient details, emergency contacts, insurance information, and initial visit data.
+              Capture doctor details, login info and expertise details
             </p>
 
           </div>
@@ -239,39 +241,6 @@ export default function DoctorForm(props) {
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
-
-                <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-
-                      size="small" required name="birth_date" value={dayjs(dob)} label="Date of birth"
-                      onChange={(date)=>setDoB(date)} error={!!errors.birth_date} helperText={errors.birth_date}
-                      className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                    />
-                  </LocalizationProvider>
-                  
-                </div>
-
-                <div>
-
-                  <TextField
-                    size="small" name="position" value={form.position} onChange={handleChange}
-                    label="Occupation"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                </div>
-
-
-                <div className="md:col-span-2">
-
-                  <TextField
-                    name="address" multiline="true" value={form.address} onChange={handleChange}
-                    rows="2"
-                    label="Patient address"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                </div>
-
                 <div>
                   <TextField
                     size="small" select name="id_type" label="ID Type" value={form.id_type}
@@ -291,56 +260,137 @@ export default function DoctorForm(props) {
                     size="small" name="id_number" value={form.id_number} onChange={handleChange} label="ID Number"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
+                </div> <div className="md:col-span-2">
+
+                  <TextField
+                    name="address" multiline="true" value={form.address} onChange={handleChange}
+                    rows="2"
+                    label="Doctor address"
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
                 </div>
 
                 <div>
+
                   <TextField
-                    size="small" select name="marital_status" label="Marital status" value={form.marital_status}
-                    onChange={handleChange}
+                    size="small" name="position" value={form.position} onChange={handleChange}
+                    label="Occupation"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <MenuItem value="">Select Status</MenuItem>
-                    {
-                      (departments && departments.length > 0) &&
-                      departments.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
-                    }
-                  </TextField>
+                  />
                 </div>
 
+
+
+
+
+                <div>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      size="small" name="joining_date" label=" Joining date" value={dayjs(joinDate)} onChange={(date) => setJoinDate(date)}
+                      className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </LocalizationProvider>
+                </div>
+
+              </div>
+            </section>
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-slate-900">Proficiency information</h2>
+              <div className="mt-6 pb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+
+                  <TextField
+                    size="small" name="doctor_id_no" value={form.doctor_id_no} onChange={handleChange}
+                    label="Doctor ID #"
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
                 <div>
                   <TextField
-                    size="small" select name="blood_group" label="Blood group" value={form.blood_group}
+                    size="small" name="license_number" value={form.license_number} onChange={handleChange}
+                    label="License number"
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <TextField
+                    size="small" select name="specialization" label="Specialization" value={form.specialization}
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   >
-                    <MenuItem value="">Select Group</MenuItem>
+                    <MenuItem value="">Select Specialization</MenuItem>
                     {
                       (specializations && specializations.length > 0) &&
                       specializations.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
                 </div>
-
                 <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                    size="small" name="joining_date" label=" Joining date" value={dayjs(joinDate)} onChange={(date)=>setJoinDate(date)}
+                  <TextField
+                    size="small" select name="department" label="Department" value={form.department}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <MenuItem value="">Select Department</MenuItem>
+                    {
+                      (departments && departments.length > 0) &&
+                      departments.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
+                    }
+                  </TextField>
+                </div>
+                <div>
+                  <TextField
+                    size="small" name="hightest_qualification" value={form.hightest_qualification} onChange={handleChange}
+                    label="Highest Qualification"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
-                  </LocalizationProvider>
                 </div>
-
+                <div>
+                  <TextField
+                    size="small" name="year_of_experience" value={form.year_of_experience} onChange={handleChange}
+                    label="Years Experience" type="number" slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <TextField
+                    size="small" select name="employment_type" label="Employment type" value={form.employment_type}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <MenuItem value="">Select Employment</MenuItem>
+                    {
+                      (employmentTypes && employmentTypes.length > 0) &&
+                      employmentTypes.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
+                    }
+                  </TextField>
+                </div>
               </div>
             </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">Emergency Contact & Insurance</h2>
+              <h2 className="text-xl font-semibold text-slate-900">Portal Access</h2>
 
               <div className="mt-6 pb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <TextField
-                    size="small" name="next_kin_name" onChange={handleChange} error={!!errors.next_kin_name} helperText={errors.next_kin_name}
-                    label="Next of kin" value={form.next_kin_name}
+                    size="small" name="user_name" onChange={handleChange} error={!!errors.user_name} helperText={errors.user_name}
+                    label="User name" value={form.user_name}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+ <div>
+                  <Checkbox
+                    name="is_active"
+                    checked={form.is_active}
+                    onChange={handleCheck}
+                  /> Allow Login
+                </div>
+                <div>
+
+                  <TextField
+                    size="small" name="password" label="Password" onChange={handleChange} error={!!errors.password}
+                    helperText={errors.password} value={form.password} type='password'
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
@@ -348,58 +398,19 @@ export default function DoctorForm(props) {
                 <div>
 
                   <TextField
-                    size="small" name="next_kin_type" label="Relation" placeholder="e.g. Mother, Brother, Spouse"
-                    onChange={handleChange} error={!!errors.next_kin_type} helperText={errors.next_kin_type} value={form.next_kin_type}
+                    size="small" name="confirm_password" type="tel" label="Confirm password" value={form.confirm_password}
+                    onChange={handleChange} error={!!errors.confirm_password} helperText={errors.confirm_password}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
-
                 <div>
-
-                  <TextField
-                    size="small" name="next_kin_phone" type="tel" label="Next of kin phone" value={form.next_kin_phone}
-                    onChange={handleChange} error={!!errors.next_kin_phone} helperText={errors.next_kin_phone}
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
+                  <Checkbox
+                    name="must_change_password"
+                    checked={form.must_change_password}
+                    onChange={handleCheck}
+                  /> User must change password
                 </div>
 
-                <div>
-                  <TextField
-                    size="small" select name="insurer_id" label="Insurer" value={form.insurer_id}
-                    onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <MenuItem value="">Select Insurer</MenuItem>
-                    {
-                      (employmentTypes && employmentTypes.length > 0) &&
-                      employmentTypes.map(item => <MenuItem value={item.id} key={item.id}>{item.name}</MenuItem>)
-                    }
-                  </TextField>
-                </div>
-
-                <div>
-                  <TextField
-                    size="small" name="insurance_number" type="tel" label="Insurance No" value={form.insurance_number}
-                    onChange={handleChange} 
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                </div>
-
-                <div>
-
-
-                  <TextField
-                    size="small" select name="payment_type" label="Payment type" 
-                    onChange={handleChange}
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <MenuItem value="">Select Insurer</MenuItem>
-                    <MenuItem value={1} key={1}>Cash</MenuItem>
-                    <MenuItem value={2} key={2}>Insurance</MenuItem>
-                    <MenuItem value={3} key={3}>Mobile Money</MenuItem>
-                    <MenuItem value={5} key={5}>Corporate</MenuItem>
-                  </TextField>
-                </div>
 
 
               </div>
@@ -414,7 +425,7 @@ export default function DoctorForm(props) {
                       type="submit"
                       className="w-full rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700"
                     >
-                      Register Patient
+                      Register Doctor
                     </button>
                   </div>
                 </div>
