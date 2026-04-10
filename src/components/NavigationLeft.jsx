@@ -52,15 +52,13 @@ const NavigationLeft = () => {
 
           <div className="flex h-20 items-center border-b border-slate-800 px-6">
             <div>
-              <div className="text-xs uppercase tracking-[0.3em] text-sky-300">HMS Admin</div>
+              <div className="text-xs uppercase tracking-[0.3em] text-sky-300">Health Management</div>
               <h1 className="mt-1 text-2xl font-bold">MediCare Panel</h1>
             </div>
           </div>
 
           <div className="px-4 py-6">
-            <div className="mb-4 px-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Main Navigation
-            </div>
+         
 
             <nav className="space-y-2">
               {navigationItems.map((item, index) => (

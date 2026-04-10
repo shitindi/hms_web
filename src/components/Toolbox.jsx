@@ -20,8 +20,8 @@ const Toolbox = () => {
 
   const location = useLocation()
 
-  const [ doctors, patients] = useSelector(state => {
-    return [ state.doctors, state.patients]
+  const [ userInfo, doctors, patients] = useSelector(state => {
+    return [state.userroles,, state.doctors, state.patients]
   })
 
   useEffect(() => {
@@ -93,11 +93,11 @@ const Toolbox = () => {
           <div className="relative">
             <button className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-3 py-2.5 hover:bg-slate-50">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 font-semibold text-sky-700">
-                AD
+                {userInfo.userName.substring(0,1).toUpperCase()}
               </div>
               <div className="hidden text-left sm:block">
-                <div className="text-sm font-semibold text-slate-900">Admin User</div>
-                <div className="text-xs text-slate-500">Super Admin</div>
+                <div className="text-sm font-semibold text-slate-900">{userInfo.userName}</div>
+                <div className="text-xs text-slate-500">Active</div>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

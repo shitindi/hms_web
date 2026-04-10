@@ -18,7 +18,7 @@ import { getDbDate } from "../Utilities/DateTime";
 export default function DoctorForm(props) {
 
   const { entity, setEditForm } = props
-
+ console.error('FORM_DATA: ', entity)
   const [userInfo, genders, idTypes, departments, specializations, employmentTypes] = useSelector(state => {
     return [state.userroles, state.lookups.genders, state.lookups.id_types,
     state.lookups.departments, state.lookups.specializations, state.lookups.employment_types]
@@ -29,30 +29,30 @@ export default function DoctorForm(props) {
   const user = useContext(UserContext)
 
   const [form, setForm] = useState({
-    id: entity?.id ?? -1,
-    first_name: entity?.Contact?.first_name,
-    middle_name: entity?.Contact?.middle_name,
-    last_name: entity?.Contact?.last_name,
-    email: entity?.Contact?.email,
-    mobile_no: entity?.Contact?.mobile_no,
-    phone: entity?.Contact?.phone,
-    position: entity?.Contact?.position,
-    address: entity?.Contact?.address,
-    created_by: entity?.CreatedBy?.id ?? userInfo.userId,
-    contact_id: entity?.Contact?.id,
-    contact_type: entity?.Contact?.contact_type ?? 1,
-    gender_id: entity?.Contact?.gender_id,
+    id: entity?.id ,
+    first_name: entity?.User?.Contact?.first_name,
+    middle_name: entity?.User?.Contact?.middle_name,
+    last_name: entity?.User?.Contact?.last_name,
+    email: entity?.User?.Contact?.email,
+    mobile_no: entity?.User?.Contact?.mobile_no,
+    phone: entity?.User?.Contact?.phone,
+    position: entity?.User?.Contact?.position,
+    address: entity?.User?.Contact?.address,
+    created_by: entity?.created_by ?? userInfo.userId,
+    contact_id: entity?.User?.Contact?.id,
+    contact_type: entity?.User?.Contact?.contact_type ?? 1,
+    gender_id: entity?.User?.Contact?.gender_id,
     tenant_id: userInfo?.tenantId ?? 0,
 
-    user_name: entity.user_name,
-    password: entity.password,
-    confirm_password: entity.confirm_password,
-    must_change_password: entity?.must_change_password ?? false,
-    user_status: entity?.user_status ?? 1,
+    user_name: entity?.User?.user_name ?? '',
+    password: '',
+    confirm_password: '',
+    must_change_password: entity?.User?.must_change_password ?? false,
+    user_status: entity?.User?.user_status ?? 1,
 
     id_type: entity?.id_type,
     id_number: entity?.id_number,
-    doctor_id: entity?.id ?? -1,
+    doctor_id: entity?.id ,
     user_id: entity?.user_id,
     doctor_id_no: entity?.doctor_id_no,
     license_number: entity?.license_number,
@@ -91,8 +91,8 @@ export default function DoctorForm(props) {
     if (!form.last_name?.trim()) errs.last_name = "Last name is required"
     if (!form.mobile_no?.trim()) errs.mobile_no = "Mobile number is required";
     if (!form.gender_id) errs.gender_id = "Gender is required"
-    if (!form.birth_date) errs.birth_date = "Birthdate is required"
     if (!form.user_name) errs.user_name = "User name is required"
+     if (!form.password) errs.password = "password is required"
     if (form.password && form.password != form.confirm_password) errs.next_kin_type = "Password did not match"
     return errs
   }
@@ -107,12 +107,13 @@ export default function DoctorForm(props) {
 
 
     window.scrollTo(0, 0)
-
     setForm({ ...form, joining_date: getDbDate(joinDate) })
+  
 
     const errs = validate()
-    setErrors(errs)
 
+    setErrors(errs)
+ 
     if (Object.keys(errs).length === 0) {
 
       let response
@@ -201,7 +202,7 @@ export default function DoctorForm(props) {
                   <TextField
                     size="small" name="middle_name" label="Middle name" value={form.middle_name} onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
+                   />
                 </div>
 
                 <div>
@@ -388,7 +389,7 @@ export default function DoctorForm(props) {
                 </div>
                 <div>
 
-                  <TextField
+                  <TextField autoComplete="off"
                     size="small" name="password" label="Password" onChange={handleChange} error={!!errors.password}
                     helperText={errors.password} value={form.password} type='password'
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -397,9 +398,9 @@ export default function DoctorForm(props) {
 
                 <div>
 
-                  <TextField
-                    size="small" name="confirm_password" type="tel" label="Confirm password" value={form.confirm_password}
-                    onChange={handleChange} error={!!errors.confirm_password} helperText={errors.confirm_password}
+                  <TextField 
+                    size="small" name="confirm_password" type="password" label="Confirm password" value={form.confirm_password}
+                    onChange={handleChange} error={!!errors.confirm_password} helperText={errors.confirm_password} 
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>

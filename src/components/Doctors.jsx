@@ -128,9 +128,7 @@ export default function DoctorsList() {
           <button className="text-xs border px-2 py-1 mx-1 rounded-lg" onClick={() => handleEditEntity(params.row.id)}>
             Edit
           </button>
-          <button className="text-xs bg-sky-100 text-sky-700 px-2 mx-1  py-1 rounded-lg">
-            Book
-          </button>
+        
         </>
 
     }
@@ -143,7 +141,7 @@ export default function DoctorsList() {
     entities.map(p => (
       {
         id: p.id,
-        doctor: p.User.Contact.first_name + ' ' + p.User.Contact.last_name,
+        doctor: p?.User?.Contact.first_name + ' ' + p?.User?.Contact?.last_name,
         gender_id: p?.User.Contact?.Gender?.name,
         doctor_id_no: p?.doctor_id_no,
         //department: p?.Department.name,
