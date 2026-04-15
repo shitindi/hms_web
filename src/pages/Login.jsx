@@ -58,7 +58,9 @@ export default function Login() {
           dispatch(setLicenseInfo(response.data.licensingInfo))
 
           const userInfo = jwtDecode(response.data?.accessToken)
-          dispatch(setUserDetail({ userName: userInfo.userName, userId: userInfo.userId, tenantId: userInfo.tenantId, roles: userInfo.roles }))
+
+          dispatch(setUserDetail({ userName: userInfo.userName, userId: userInfo.userId, 
+            tenantId: userInfo.tenantId, roles: userInfo.roles, defaultRole: userInfo.defaultRole }))
 
           const lookupsResponse = await axios.get(LOOKUP_URL, null, { headers: { 'Content-Type': 'application/json' } })
           if (lookupsResponse.status === 200) {
@@ -67,19 +69,20 @@ export default function Login() {
           }else{
             setError(lookupsResponse)
           }
-
         }else{
           setError(response)
         }
 
     } catch (err) {
-      console.error(err)
+      console.error('LOGIN_ERR:', err)
          if (!err?.response) {
           setError('No Server Response');
         } else if (err.response?.status === 400) {
-          setError('Missing Username or Password');
+          const errMsg = err?.response?.data?.error?.message ?? 'Missing Username or Password'
+          setError(errMsg);
         } else if (err.response?.status === 401) {
-          setError('Unathorized');
+           const errMsg = err?.response?.data?.error?.message ?? 'Unathorized'
+          setError(errMsg);
         } else {
           setError('Login Failed: ' + err.response.data.error.message);
         }

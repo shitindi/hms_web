@@ -1,5 +1,6 @@
 {
   "name": "hms",
+  "homepage": "https://byteware.co.tz",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,15 +8,17 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "production": "vite build --base=./"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/material": "^7.3.9",
-    "@mui/x-data-grid": "^8.28.2",
-    "@mui/x-date-pickers": "^8.27.2",
-    "@reduxjs/toolkit": "^2.11.2",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "@mui/x-data-grid": "^9.0.1",
+    "@mui/x-date-pickers": "^9.0.0",
+    "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.14.0",
     "dayjs": "^1.11.20",

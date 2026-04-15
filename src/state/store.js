@@ -5,19 +5,31 @@ import userReducer from './userSlice';
 import lookups from './lookupsSlice'
 import doctorSlice from './doctorsSlice'
 import patientsSlice from './patientsSlice'
+import appointmentSlice from './appointmentSlice'
 
-import storage from 'redux-persist/lib/storage'
-import {persistReducer} from 'redux-persist';
+import storage from 'redux-persist/es/storage'
+import {persistReducer ,
+     FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,} from 'redux-persist';
 import { configureStore , combineReducers} from  '@reduxjs/toolkit';
+
 
 //const reduxLogger = require('redux-logger')
 //const logger = reduxLogger.createLogger()
 
 const persistConfig = {
     key: 'root',
+    version: 1,
     storage,
+    //timeout: null,
+
 
 }
+
 
 const reducer = combineReducers(
 {
@@ -27,13 +39,20 @@ const reducer = combineReducers(
     lookups: lookups,
     doctors: doctorSlice,
     patients: patientsSlice,
+    appointments: appointmentSlice
 }
 )
 
 const persistedReducer = persistReducer(persistConfig, reducer)
 
 const store = configureStore({
-    reducer: persistedReducer
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    })
     /*
     reducer: {
         token: tokenReducer,

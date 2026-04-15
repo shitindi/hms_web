@@ -24,6 +24,7 @@ const RequireAuth = ({ allowedRoles }) => {
       ?
       <>
         <div className="min-h-screen bg-slate-100 text-slate-900">
+
           <div className="flex min-h-screen">
 
             <NavigationLeft />
@@ -32,7 +33,7 @@ const RequireAuth = ({ allowedRoles }) => {
 
               <Toolbox />
 
-              <main className="flex-1 overflow-auto p-6 lg:p-8">
+              <main className="flex-1 overflow-auto px-6  lg:px-8">
 
                 <Outlet />
               </main>

@@ -1,14 +1,17 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { ToastContainer } from 'react-toastify';
-
+import ProfileIcon from '@mui/icons-material/AccountCircleOutlined';
+import LogoutIcon from '@mui/icons-material/LogoutOutlined';
 import { setDoctorsDetail } from '../state/doctorsSlice'
 import { setPatientsDetail } from '../state/patientsSlice'
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import UserContext from '../context/UserProvider';
 import PatientMenu from './toolmenus/PatientMenu';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import DoctorMenu from './toolmenus/DoctorMenu';
+import AppointmentMenu from './toolmenus/AppointmentMenu';
+import { Avatar, Box, Button, IconButton, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
 
 const Toolbox = () => {
 
@@ -23,6 +26,8 @@ const Toolbox = () => {
   const [ userInfo, doctors, patients] = useSelector(state => {
     return [state.userroles,, state.doctors, state.patients]
   })
+
+    const [anchorElUser, setAnchorElUser] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -47,7 +52,7 @@ const Toolbox = () => {
         if (entityResult.status === 200)
           dispatch(setPatientsDetail(entityResult.data))
       } catch (err) {
-        console.log('LOADING_Doctors: ', err)
+        console.log('LOADING_Patients: ', err)
       }
     }
 
@@ -67,11 +72,25 @@ const Toolbox = () => {
           return <PatientMenu data={userContext.state} />
          case 'doctors':
           return <DoctorMenu data={userContext.state} />
+          case 'appointments':
+          return <AppointmentMenu data={userContext.state} />
         default:
          // return <PatientMenu />    
      }
   }
 
+    const handleOpenUserMenu = (event) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+
+   const handleCloseNavMenu = () => {
+    setAnchorElNav(null);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
+  };
 
   //const profileMenuItems = ['Profile', 'Account Settings', 'Notifications', 'Help', 'Logout'];
 
@@ -91,49 +110,45 @@ const Toolbox = () => {
          }
 
           <div className="relative">
-            <button className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-3 py-2.5 hover:bg-slate-50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 font-semibold text-sky-700">
-                {userInfo.userName.substring(0,1).toUpperCase()}
-              </div>
-              <div className="hidden text-left sm:block">
-                <div className="text-sm font-semibold text-slate-900">{userInfo.userName}</div>
-                <div className="text-xs text-slate-500">Active</div>
-              </div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="h-4 w-4 text-slate-500"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
+        
 
-            {
-              /*
-                         <div className="absolute right-0 z-20 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
-                  <div className="border-b border-slate-100 px-3 py-3">
-                    <div className="text-sm font-semibold text-slate-900">Admin User</div>
-                    <div className="mt-1 text-xs text-slate-500">admin@hospital.org</div>
-                  </div>
+        
+               <Box sx={{ flexGrow: 0 ,}}>
+            <Tooltip title="Open settings">
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt={userInfo.userName.toUpperCase()} src="/static/images/avatar/2.jpg" />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              sx={{ mt: '45px' }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
 
-                  <div className="pt-2">
-                    {profileMenuItems.map((item) => (
-                      <button
-                        key={item}
-                        className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm hover:bg-slate-50 ${item === 'Logout' ? 'text-red-600 hover:bg-red-50' : 'text-slate-700'
-                          }`}
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <MenuItem onClick={handleCloseUserMenu} component={Link} to='/profile'>
+              <ProfileIcon />
+                <Typography sx={{ textAlign: 'center' , marginLeft: 1}}>My Profile</Typography>
+              </MenuItem>
+              <hr style={{width: '180px'}} />
+              <MenuItem onClick={handleCloseUserMenu} component={Link} to='/logout'>
+              <LogoutIcon />
+                <Typography sx={{ textAlign: 'center', marginLeft: 1 }}>Log out</Typography>
+              </MenuItem>
+            </Menu>
+          </Box>
 
-              */
-            }
+    
           </div>
         </div>
       </div>

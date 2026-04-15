@@ -1,18 +1,18 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Form, useNavigate } from "react-router-dom";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useContext, useState } from "react";
 import { toast } from "react-toastify";
 import { MenuItem, TextField } from "@mui/material";
-import UserContext from "../context/UserProvider";
-import {resetPatients} from '../state/patientsSlice'
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import UserContext from "../../context/UserProvider";
+import {resetPatients} from '../../state/patientsSlice'
+
 
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { getDbDate } from "../Utilities/DateTime";
+import { getDbDate } from "../../Utilities/DateTime";
 
 
 export default function PatientForm(props) {
@@ -42,7 +42,7 @@ export default function PatientForm(props) {
     contact_id: entity?.Contact?.id,
     contact_type: entity?.Contact?.contact_type ?? 3,
     gender_id: entity?.Contact?.gender_id,
-    tenant_id: userInfo?.tenantId ?? 0,
+    tenant_id: userInfo.tenantId ,
 
     id_type: entity?.id_type,
     id_number: entity?.id_number,

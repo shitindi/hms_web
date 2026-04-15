@@ -1,24 +1,24 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Form, useNavigate } from "react-router-dom";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useContext, useState } from "react";
 import { toast } from "react-toastify";
 import { Checkbox, MenuItem, TextField } from "@mui/material";
-import UserContext from "../context/UserProvider";
-import { resetDoctors } from '../state/doctorsSlice'
+import UserContext from "../../context/UserProvider";
+import { resetDoctors } from '../../state/doctorsSlice'
 
 
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { getDbDate } from "../Utilities/DateTime";
+import { getDbDate } from "../../Utilities/DateTime";
 
 
 export default function DoctorForm(props) {
 
   const { entity, setEditForm } = props
- console.error('FORM_DATA: ', entity)
+
   const [userInfo, genders, idTypes, departments, specializations, employmentTypes] = useSelector(state => {
     return [state.userroles, state.lookups.genders, state.lookups.id_types,
     state.lookups.departments, state.lookups.specializations, state.lookups.employment_types]
@@ -42,7 +42,7 @@ export default function DoctorForm(props) {
     contact_id: entity?.User?.Contact?.id,
     contact_type: entity?.User?.Contact?.contact_type ?? 1,
     gender_id: entity?.User?.Contact?.gender_id,
-    tenant_id: userInfo?.tenantId ?? 0,
+    tenant_id: userInfo.tenantId ,
 
     user_name: entity?.User?.user_name ?? '',
     password: '',
@@ -161,7 +161,7 @@ export default function DoctorForm(props) {
       <div className="mx-auto max-w-7xl ">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h4 className="text-3xl font-bold text-slate-900">Patient Registration</h4>
+            <h4 className="text-3xl font-bold text-slate-900">Doctor Registration</h4>
             <p className=" text-slate-600">
               Capture doctor details, login info and expertise details
             </p>
@@ -261,7 +261,8 @@ export default function DoctorForm(props) {
                     size="small" name="id_number" value={form.id_number} onChange={handleChange} label="ID Number"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
-                </div> <div className="md:col-span-2">
+                </div> 
+                <div className="md:col-span-2">
 
                   <TextField
                     name="address" multiline="true" value={form.address} onChange={handleChange}

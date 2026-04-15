@@ -4,6 +4,7 @@ const initialState = {
     userName: '',
     userId: 0,
     tenantId: 0,
+    defaultRole: 0,
     roles: []
 }
 

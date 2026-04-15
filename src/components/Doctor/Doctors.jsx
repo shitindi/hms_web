@@ -1,11 +1,11 @@
 import { useContext, useEffect, useState } from "react";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { Box, Modal, Paper, Tooltip, Typography } from "@mui/material";
 import DoctorForm from "./DoctorForm";
 import { DataGrid } from "@mui/x-data-grid";
 import { useDispatch, useSelector } from "react-redux";
-import UserContext from "../context/UserProvider";
-import { setDoctorsDetail} from "../state/doctorsSlice";
+import UserContext from "../../context/UserProvider";
+import { setDoctorsDetail} from "../../state/doctorsSlice";
 import { BounceLoader } from 'react-spinners'
 
 export default function DoctorsList() {
@@ -76,7 +76,7 @@ export default function DoctorsList() {
   }
 
   useEffect(() => {
-    const fetchPattients = async () => {
+    const fetchDoctors = async () => {
       try {
         if (doctors.length === entities.length)
           return
@@ -102,7 +102,7 @@ export default function DoctorsList() {
       setModalOpen(false)
     }
 
-    fetchPattients()
+    fetchDoctors()
   }, [doctors.length])
 
 

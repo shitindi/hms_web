@@ -1,3 +1,4 @@
+
 export default function Dashboard() {
   const stats = [
     { label: 'Today\'s Patients', value: '128', note: '+14 since yesterday' },
@@ -74,7 +75,7 @@ export default function Dashboard() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm text-slate-500">Friday, 27 March 2026</p>
+              <p className="text-sm text-slate-500">Friday, 27 March 2026  </p>
             </div>
           </header>
           <section className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

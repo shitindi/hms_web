@@ -1,21 +1,82 @@
+import { useContext, useEffect, useState } from "react";
+import UserContext from "../../context/UserProvider";
+import { useNavigate } from "react-router-dom";
+import { Box, Modal, Typography } from "@mui/material";
+import { BounceLoader } from "react-spinners";
+import { toast } from "react-toastify";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { getAgeFromBod } from "../../Utilities/DateTime";
+
 export default function PatientDetails() {
-  const patient = {
-    id: 'HMS-2041',
-    name: 'Amina Hassan',
-    gender: 'Female',
-    age: 29,
-    dateOfBirth: '12 Aug 1996',
-    bloodGroup: 'O+',
-    phone: '+255 712 345 678',
-    email: 'amina.hassan@example.com',
-    address: 'Mikocheni, Dar es Salaam',
-    department: 'General Medicine',
-    doctor: 'Dr. Michael',
-    visitType: 'Outpatient',
-    status: 'Active',
-    insurance: 'NHIF',
-    emergencyContact: 'Hassan Ali • +255 754 222 111',
+  const user = useContext(UserContext)
+  const navigate = useNavigate()
+  const axios = useAxiosPrivate()
+  const [entity, setEntity] = useState({})
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    p: 4,
   };
+
+  const [modalOpen, setModalOpen] = useState(false)
+
+
+
+  useEffect(() => {
+
+    if (user.state.component !== 'patientview' && user.state.entity_id < 1) {
+      // user.setState({component: 'home', action: 4})
+      navigate('/')
+      return
+    }
+
+  
+       const fetchAppoitments = async () => {
+          try {
+            console.error('INAPENYA')
+            setModalOpen(true)
+            const entityResult = await axios.get(`/appointments/appointments/${user.state.entity_id}`)
+            
+            if (entityResult.status === 200) {
+              setEntity(entityResult.data)
+              window.scrollTo(0, 0)
+            } else {
+
+              const message = 'Unable to get list of items: error - ' + entityResult.status
+              toast.error(message)
+            }
+          } catch (err) {
+            console.error('CATCH: ', err)
+            const message = err.response?.data?.error.message
+            toast.error(message)
+          }
+          setModalOpen(false)
+        }
+    
+        fetchAppoitments()
+  }, [])
+
+   console.error('ENTITY: ', entity)
+  const patient = {
+    id: entity?.Patient?.registration_no ?? 'not set',
+    name: entity?.Patient?.Contact?.first_name + ' ' + entity?.Patient?.Contact?.last_name,
+    gender: entity?.Patient?.Contact.Gender.name,
+    age: getAgeFromBod(entity?.Patient?.birth_date),
+    dateOfBirth: entity?.Patient?.birth_date,
+    bloodGroup: entity?.Patient?.BloodGroup.name,
+    phone: entity?.Patient?.Contact?.mobile_no,
+    email: entity?.Patient?.Contact?.email,
+    address: entity?.Patient?.Contact?.address, 
+    department: entity?.Department?.name,
+    doctor: 'Dr. ' + entity?.Doctor?.User?.Contact.first_name + ' ' + entity?.Doctor?.User?.Contact.first_name,
+    visitType: entity?.AppointmentType?.name,
+    status:  entity?.Patient?.CurrentActivity?.name,
+    insurance: entity?.Patient?.Insurer?.name ?? 'Cash',
+    emergencyContact: `${entity?.next_kin_name} • ${entity?.next_kin_phone}`,
+  }; 
 
   const vitals = [
     { label: 'Temperature', value: '37.2°C' },
@@ -97,6 +158,16 @@ export default function PatientDetails() {
   return (
     <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
+         <Modal
+              open={modalOpen}
+            >
+              <Box sx={style}>
+                <BounceLoader color="#0096FF" />
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Loading...
+                </Typography>
+              </Box>
+            </Modal>
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-sm text-slate-500">Patients / Medical Record / Details</p>

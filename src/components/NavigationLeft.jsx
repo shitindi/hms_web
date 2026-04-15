@@ -8,8 +8,9 @@ const NavigationLeft = () => {
 
     const navigationItems = [
     {name:'Home', url: "/"},
+    {name: 'Staffs', url: '/staffs'},
     {name: 'Patients', url: '/patients'},
-    {name: 'Appointments', url: '/appointment'},
+    {name: 'Appointments', url: '/appointments'},
     {name: 'Doctors', url: '/doctors'},
     {name: 'Laboratory', url: '/laboratory'},
     {name: 'Pharmacy', url: 'pharmacy'},
@@ -39,9 +40,10 @@ const NavigationLeft = () => {
         entity_id: 0,
         entities: []
     })
+     setMenuIndex(index)
     navigate(url)
-    setMenuIndex(index)
-
+    navigate(0)
+  
   }
 
   return (
