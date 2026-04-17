@@ -8,7 +8,8 @@ const useRefreshToken = () => {
             withCredentials: true
         });
 
-        return response.data.accessToken;
+        //return response.data.accessToken;
+        return response;
     }
   return refresh
 }

@@ -36,7 +36,7 @@ export default function DoctorDashboard() {
   }
   )
   const axios = useAxiosPrivate();
-  const [dashboard, setDatashboar] = useState(dashboardStats)
+ // const [dashboard, setDatashboar] = useState(dashboardStats)
   const [modalOpen, setModalOpen] = useState(false)
   let [entities, setEntities] = useState([])
 
@@ -70,10 +70,10 @@ export default function DoctorDashboard() {
   }, [])
 
   const stats = [
-    { label: "Today's Appointments", value: dashboard.patients_total, note: `${dashboard.patient_waiting} waiting now` },
-    { label: 'Patients Seen', value: dashboard.patients_seen, note: 'Morning progress' },
-    { label: 'Pending Lab Reviews', value: dashboard.patients_in_lab, note: 'Needs action' },
-    { label: 'Follow-ups', value: dashboard.patients_followup, note: 'Scheduled today' },
+    { label: "Today's Appointments", value: dashboardStats.patients_total, note: `${dashboardStats.patient_waiting} waiting now` },
+    { label: 'Patients Seen', value: dashboardStats.patients_seen, note: 'Morning progress' },
+    { label: 'Pending Lab Reviews', value: dashboardStats.patients_in_lab, note: 'Needs action' },
+    { label: 'Follow-ups', value: dashboardStats.patients_followup, note: 'Scheduled today' },
   ];
 
   // const rmp = [

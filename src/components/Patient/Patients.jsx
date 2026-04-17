@@ -14,6 +14,7 @@ export default function PatientList() {
 
 
   const axios = useAxiosPrivate();
+  
   const user = useContext(UserContext)
   const dispatch = useDispatch()
   const navigate = useNavigate()

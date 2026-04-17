@@ -6,13 +6,21 @@ import { BounceLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { getAgeFromBod } from "../../Utilities/DateTime";
+import VitalsMeasurement from "../VitalMeasurement";
+import ModalContainer from "../ModalContainer";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
   const navigate = useNavigate()
   const axios = useAxiosPrivate()
   const [entity, setEntity] = useState({})
-
+  const [modalOpen, setModalOpen] = useState(false)
+  const [ modal, setModal] = useState( 
+    {Component: null,
+      modelOpen: false
+    }
+  )
+  const [vital, setVital] = useState({})
   const style = {
     position: 'absolute',
     top: '50%',
@@ -20,10 +28,6 @@ export default function PatientDetails() {
     transform: 'translate(-50%, -50%)',
     p: 4,
   };
-
-  const [modalOpen, setModalOpen] = useState(false)
-
-
 
   useEffect(() => {
 
@@ -33,33 +37,120 @@ export default function PatientDetails() {
       return
     }
 
-  
-       const fetchAppoitments = async () => {
-          try {
-            console.error('INAPENYA')
-            setModalOpen(true)
-            const entityResult = await axios.get(`/appointments/appointments/${user.state.entity_id}`)
-            
-            if (entityResult.status === 200) {
-              setEntity(entityResult.data)
-              window.scrollTo(0, 0)
-            } else {
 
-              const message = 'Unable to get list of items: error - ' + entityResult.status
-              toast.error(message)
-            }
-          } catch (err) {
-            console.error('CATCH: ', err)
-            const message = err.response?.data?.error.message
-            toast.error(message)
-          }
-          setModalOpen(false)
+    const fetchAppoitments = async () => {
+      try {
+        setModalOpen(true)
+        const entityResult = await axios.get(`/appointments/appointments/${user.state.entity_id}`)
+
+        if (entityResult.status === 200) {
+          console.error('DETAILS: ', entityResult.data)
+          setEntity(entityResult.data)
+          setVital({ ...(entityResult.data?.PatientVital ?? {}), apointment_id: user.state.entity_id })
+          window.scrollTo(0, 0)
+        } else {
+
+          const message = 'Unable to get list of items: error - ' + entityResult.status
+          toast.error(message)
         }
-    
-        fetchAppoitments()
+      } catch (err) {
+        console.error('CATCH: ', err)
+        const message = err.response?.data?.error.message
+        toast.error(message)
+      }
+      setModalOpen(false)
+    }
+
+    fetchAppoitments()
   }, [])
 
-   console.error('ENTITY: ', entity)
+
+  const getStatusClasses = (status) => {
+    if (status === 'Active' || status === 'Reviewed' || status === 'Current Visit') {
+      return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+    }
+    if (status === 'Pending Follow-up') {
+      return 'bg-amber-50 text-amber-700 border border-amber-200';
+    }
+    return 'bg-slate-50 text-slate-700 border border-slate-200';
+  };
+
+  const selectButtonStyle = (start = false) => {
+    const activeStatuses = [3, 4, 5, 6, 7, 8, 9]
+    if (activeStatuses.includes(entity?.Patient?.current_activity ?? 2)) {
+      if (start === true)
+        return "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+
+      return "w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-medium text-white hover:bg-sky-700"
+    } else if (start == true) {
+      return "w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-medium text-white hover:bg-sky-700"
+    } else {
+      return "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+    }
+  }
+
+  const handleBeginConsultation = async  ()  => {
+     if ( entity?.Patient?.current_activity !==2 ){
+      toast.warn('Consulation already started!')
+       return
+     }
+     
+    
+    let success = true
+    let message = "Appointment started successfuly"
+
+    
+    try {
+
+      const response = await axios.post('/patients/update-status', 
+        { patient_id:  entity?.patient_id ?? -1,
+          current_activity: 4
+         }
+      )
+
+      if (response.status === 200) {
+
+        success = true
+        message = 'Appointment started successfuly!'
+
+        //setApiMessage({ success, message })
+        toast.success(message)
+        //setEditForm()
+        // dispatch(resetAppointments())
+        //  user.setState({ ...user.state, action: 4 })
+        // navigate('/appointments', { replace: true })
+        setEntities(prev =>
+          prev.map(app =>
+
+            app.id === id ?
+              { ...app, Patient: {...app.Patient, current_activity: 4} }
+              : app
+
+          )
+        )
+      } else {
+        success = false
+        message = response.data
+        //setApiMessage({ success, message })
+        toast.error(message)
+      }
+    } catch (err) {
+      console.error('POST_ERROR: ', err)
+      const success = false
+      const message = 'ERROR: ' + err.response.data.error.message
+      toast.error(message)
+    }
+  }
+
+  const handleEditVital = () => {
+     setModal({
+      Component: VitalsMeasurement,
+      modelOpen: true
+     })
+  }
+
+
+
   const patient = {
     id: entity?.Patient?.registration_no ?? 'not set',
     name: entity?.Patient?.Contact?.first_name + ' ' + entity?.Patient?.Contact?.last_name,
@@ -69,20 +160,21 @@ export default function PatientDetails() {
     bloodGroup: entity?.Patient?.BloodGroup.name,
     phone: entity?.Patient?.Contact?.mobile_no,
     email: entity?.Patient?.Contact?.email,
-    address: entity?.Patient?.Contact?.address, 
+    address: entity?.Patient?.Contact?.address,
     department: entity?.Department?.name,
     doctor: 'Dr. ' + entity?.Doctor?.User?.Contact.first_name + ' ' + entity?.Doctor?.User?.Contact.first_name,
     visitType: entity?.AppointmentType?.name,
-    status:  entity?.Patient?.CurrentActivity?.name,
+    status: entity?.Patient?.CurrentActivity?.name,
     insurance: entity?.Patient?.Insurer?.name ?? 'Cash',
-    emergencyContact: `${entity?.next_kin_name} • ${entity?.next_kin_phone}`,
-  }; 
+    emergencyContact: `${entity?.Patient?.next_kin_name} • ${entity?.Patient?.next_kin_phone}`,
+  };
+
 
   const vitals = [
-    { label: 'Temperature', value: '37.2°C' },
-    { label: 'Blood Pressure', value: '118/76 mmHg' },
-    { label: 'Pulse Rate', value: '78 bpm' },
-    { label: 'Weight', value: '64 kg' },
+    { label: 'Temperature', value: `${vital?.temperature ?? 0}°C` },
+    { label: 'Blood Pressure', value: `${vital?.bp_systolic ?? 0}/${vital?.bp_diastolic ?? 0} mmHg` },
+    { label: 'Pulse Rate', value: `${vital?.pulse_rate ?? 0} bpm` },
+    { label: 'Weight', value: `${vital?.weight_kg ?? 0} kg` },
   ];
 
   const visits = [
@@ -145,29 +237,26 @@ export default function PatientDetails() {
     'Follow-up visit recommended after completion of medication.',
   ];
 
-  const getStatusClasses = (status) => {
-    if (status === 'Active' || status === 'Reviewed' || status === 'Current Visit') {
-      return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
-    }
-    if (status === 'Pending Follow-up') {
-      return 'bg-amber-50 text-amber-700 border border-amber-200';
-    }
-    return 'bg-slate-50 text-slate-700 border border-slate-200';
-  };
-
   return (
     <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+      { modal.Component && <ModalContainer 
+      Component= { modal.Component}
+       entity={vital} 
+       modalOpen={modal.modelOpen} 
+       setModal={setModal}
+       />}
       <div className="mx-auto max-w-7xl">
-         <Modal
-              open={modalOpen}
-            >
-              <Box sx={style}>
-                <BounceLoader color="#0096FF" />
-                <Typography id="modal-modal-title" variant="h6" component="h2">
-                  Loading...
-                </Typography>
-              </Box>
-            </Modal>
+        <Modal
+          open={modalOpen}
+        >
+          <Box sx={style}>
+            <BounceLoader color="#111314" />
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Loading...
+            </Typography>
+          </Box>
+        </Modal>
+
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-sm text-slate-500">Patients / Medical Record / Details</p>
@@ -178,15 +267,13 @@ export default function PatientDetails() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <button className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700">
               Print Record
             </button>
-            <button className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700">
               Edit Patient
             </button>
-            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700">
-              New Consultation
-            </button>
+
           </div>
         </header>
 
@@ -347,7 +434,29 @@ export default function PatientDetails() {
                 </div>
               </div>
             </section>
-
+            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-slate-900">Quick Actions</h2>
+              <div className="mt-5 space-y-3">
+                <button className={selectButtonStyle(true)} onClick={handleBeginConsultation}>
+                  Start Consultation
+                </button>
+                <button className={selectButtonStyle()} onClick={handleEditVital}>
+                  Vitals details
+                </button>
+                <button className={selectButtonStyle()}>
+                  Add Prescription
+                </button>
+                <button className={selectButtonStyle()}>
+                  Request Lab Test
+                </button>
+                <button className={selectButtonStyle()}>
+                  Book Follow-up
+                </button>
+                <button className={selectButtonStyle()}>
+                  Create Invoice
+                </button>
+              </div>
+            </section>
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-slate-900">Clinical Notes</h2>
               <div className="mt-5 space-y-3">
@@ -359,26 +468,7 @@ export default function PatientDetails() {
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">Quick Actions</h2>
-              <div className="mt-5 space-y-3">
-                <button className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-medium text-white hover:bg-sky-700">
-                  Start Consultation
-                </button>
-                <button className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Add Prescription
-                </button>
-                <button className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Request Lab Test
-                </button>
-                <button className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Book Follow-up
-                </button>
-                <button className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Create Invoice
-                </button>
-              </div>
-            </section>
+
           </div>
         </section>
       </div>
