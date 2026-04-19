@@ -3,13 +3,19 @@ import axios from "../api/axios";
 const useRefreshToken = () => {
 
     const refresh = async (refreshToken) => {
-
-        const response = await axios.post('/auth/refresh-token',{refreshToken}, {
+        try{
+ const response = await axios.post('/auth/refresh-token',{refreshToken}, {
             withCredentials: true
         });
-
-        //return response.data.accessToken;
+         console.error('BEFOR RETURN')
         return response;
+        }catch(err){
+            console.error('THROW ', err)
+            return err
+        }
+       
+       
+        
     }
   return refresh
 }
