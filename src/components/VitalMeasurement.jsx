@@ -29,6 +29,7 @@ export default function VitalsMeasurement({ setOpen, entity, setModal }) {
     const axios = useAxiosPrivate()
 
     const [object, setObject] = useState(entity)
+    
     const handleChange = (field, value) => {
         setVitals(prev => ({ ...prev, [field]: value }));
     };

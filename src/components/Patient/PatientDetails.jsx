@@ -8,6 +8,7 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { getAgeFromBod } from "../../Utilities/DateTime";
 import VitalsMeasurement from "../VitalMeasurement";
 import ModalContainer from "../ModalContainer";
+import PatientMedicalHistory from "./PatientMedicalHistory";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
@@ -15,8 +16,9 @@ export default function PatientDetails() {
   const axios = useAxiosPrivate()
   const [entity, setEntity] = useState({})
   const [modalOpen, setModalOpen] = useState(false)
-  const [ modal, setModal] = useState( 
-    {Component: null,
+  const [modal, setModal] = useState(
+    {
+      Component: null,
       modelOpen: false
     }
   )
@@ -44,7 +46,7 @@ export default function PatientDetails() {
         const entityResult = await axios.get(`/appointments/appointments/${user.state.entity_id}`)
 
         if (entityResult.status === 200) {
-          console.error('DETAILS: ', entityResult.data)
+
           setEntity(entityResult.data)
           setVital({ ...(entityResult.data?.PatientVital ?? {}), apointment_id: user.state.entity_id })
           window.scrollTo(0, 0)
@@ -89,23 +91,24 @@ export default function PatientDetails() {
     }
   }
 
-  const handleBeginConsultation = async  ()  => {
-     if ( entity?.Patient?.current_activity !==2 ){
+  const handleBeginConsultation = async () => {
+    if (entity?.Patient?.current_activity !== 2) {
       toast.warn('Consulation already started!')
-       return
-     }
-     
-    
+      return
+    }
+
+
     let success = true
     let message = "Appointment started successfuly"
 
-    
+
     try {
 
-      const response = await axios.post('/patients/update-status', 
-        { patient_id:  entity?.patient_id ?? -1,
+      const response = await axios.post('/patients/update-status',
+        {
+          patient_id: entity?.patient_id ?? -1,
           current_activity: 4
-         }
+        }
       )
 
       if (response.status === 200) {
@@ -119,11 +122,11 @@ export default function PatientDetails() {
         // dispatch(resetAppointments())
         //  user.setState({ ...user.state, action: 4 })
         // navigate('/appointments', { replace: true })
-        setEntities(prev =>
+        setEntity(prev =>
           prev.map(app =>
 
-            app.id === id ?
-              { ...app, Patient: {...app.Patient, current_activity: 4} }
+            app.id === entity.id ?
+              { ...app, Patient: { ...app.Patient, current_activity: 4 } }
               : app
 
           )
@@ -143,12 +146,11 @@ export default function PatientDetails() {
   }
 
   const handleEditVital = () => {
-     setModal({
+    setModal({
       Component: VitalsMeasurement,
       modelOpen: true
-     })
+    })
   }
-
 
 
   const patient = {
@@ -239,12 +241,12 @@ export default function PatientDetails() {
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
-      { modal.Component && <ModalContainer 
-      Component= { modal.Component}
-       entity={vital} 
-       modalOpen={modal.modelOpen} 
-       setModal={setModal}
-       />}
+      {modal.Component && <ModalContainer
+        Component={modal.Component}
+        entity={vital}
+        modalOpen={modal.modelOpen}
+        setModal={setModal}
+      />}
       <div className="mx-auto max-w-7xl">
         <Modal
           open={modalOpen}
@@ -346,35 +348,9 @@ export default function PatientDetails() {
             <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 p-6">
                 <h2 className="text-xl font-semibold text-slate-900">Visit History</h2>
-                <p className="mt-1 text-sm text-slate-500">Recent consultations and encounter history.</p>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-slate-600">
-                    <tr>
-                      <th className="px-6 py-4 text-left font-semibold">Date</th>
-                      <th className="px-6 py-4 text-left font-semibold">Doctor</th>
-                      <th className="px-6 py-4 text-left font-semibold">Department</th>
-                      <th className="px-6 py-4 text-left font-semibold">Diagnosis</th>
-                      <th className="px-6 py-4 text-left font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visits.map((visit) => (
-                      <tr key={visit.date + visit.doctor} className="border-t border-slate-100">
-                        <td className="px-6 py-4">{visit.date}</td>
-                        <td className="px-6 py-4">{visit.doctor}</td>
-                        <td className="px-6 py-4">{visit.department}</td>
-                        <td className="px-6 py-4">{visit.diagnosis}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(visit.status)}`}>
-                            {visit.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <PatientMedicalHistory />
               </div>
             </section>
 
@@ -452,23 +428,10 @@ export default function PatientDetails() {
                 <button className={selectButtonStyle()}>
                   Book Follow-up
                 </button>
-                <button className={selectButtonStyle()}>
-                  Create Invoice
-                </button>
+
               </div>
             </section>
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">Clinical Notes</h2>
-              <div className="mt-5 space-y-3">
-                {notes.map((note) => (
-                  <div key={note} className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-                    {note}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-
+       
           </div>
         </section>
       </div>

@@ -17,6 +17,8 @@ import NursingStation from './components/NursingStation'
 import PharmacyDispensing from './components/PharmacyDispensing'
 import BillingInvoicing from './components/BillingInvoicing'
 import DischargeManagement from './components/DischargeManagement'
+import PatientMedicalHistoryScreen from './components/Patient/PatientMedicalHistory'
+import PatientMedicalHistory from './components/Patient/PatientMedicalHistory'
 
 function Test() {
   //const [count, setCount] = useState(0)
@@ -48,7 +50,7 @@ function Test() {
 
   return (
     
-   <DischargeManagement />
+   <PatientMedicalHistory />
   )
 }
 
