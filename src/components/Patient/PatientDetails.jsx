@@ -9,6 +9,7 @@ import { getAgeFromBod } from "../../Utilities/DateTime";
 import VitalsMeasurement from "../VitalMeasurement";
 import ModalContainer from "../ModalContainer";
 import PatientMedicalHistory from "./PatientMedicalHistory";
+import LabTestSelector from "../Doctor/LabTestSelector";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
@@ -148,6 +149,13 @@ export default function PatientDetails() {
   const handleEditVital = () => {
     setModal({
       Component: VitalsMeasurement,
+      modelOpen: true
+    })
+  }
+
+  const handleAddLabRequest = () => {
+    setModal({
+      Component: LabTestSelector,
       modelOpen: true
     })
   }
@@ -419,12 +427,13 @@ export default function PatientDetails() {
                 <button className={selectButtonStyle()} onClick={handleEditVital}>
                   Vitals details
                 </button>
+                 <button className={selectButtonStyle()} onClick={handleAddLabRequest}>
+                  Request Lab Test
+                </button>
                 <button className={selectButtonStyle()}>
                   Add Prescription
                 </button>
-                <button className={selectButtonStyle()}>
-                  Request Lab Test
-                </button>
+               
                 <button className={selectButtonStyle()}>
                   Book Follow-up
                 </button>

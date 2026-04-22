@@ -25,7 +25,9 @@ const initialState = {
     order_statuses: [],
     patient_activities: [],
     billing_options: [],
-    insurers: []
+    insurers: [],
+    lab_test_categories: [],
+    lab_result_statuses: []
 }
 
 
