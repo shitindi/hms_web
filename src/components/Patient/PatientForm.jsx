@@ -53,7 +53,6 @@ export default function PatientForm(props) {
     next_kin_type: entity?.next_kin_type,
     next_kin_phone: entity?.next_kin_phone,
     joining_date: entity?.joining_date,
-    current_activity: entity?.current_activity ?? 13,
     is_active: true,
     insurer_id: entity?.insurer_id,
     insurance_number: entity?.insurance_number

@@ -1,33 +1,56 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import { toast } from 'react-toastify';
+import { getDbDate } from '../../Utilities/DateTime';
+import { useSelector } from 'react-redux';
 
 export default function LabTestSelector({ setOpen, entity, setModal }) {
-  const availableTests = [
-    { id: 1, name: 'Complete Blood Count', category: 'Hematology' },
-    { id: 2, name: 'Hemoglobin', category: 'Hematology' },
-    { id: 3, name: 'Blood Glucose (FBS)', category: 'Biochemistry' },
-    { id: 4, name: 'Creatinine', category: 'Biochemistry' },
-    { id: 5, name: 'Urea', category: 'Biochemistry' },
-    { id: 6, name: 'Electrolytes (Na⁺)', category: 'Biochemistry' },
-    { id: 7, name: 'Electrolytes (K⁺)', category: 'Biochemistry' },
-    { id: 8, name: 'Liver Function Test', category: 'Biochemistry' },
-    { id: 9, name: 'ALT (SGPT)', category: 'Biochemistry' },
-    { id: 10, name: 'AST (SGOT)', category: 'Biochemistry' },
-    { id: 11, name: 'Lipid Profile', category: 'Biochemistry' },
-    { id: 12, name: 'Cholesterol (Total)', category: 'Biochemistry' },
-    { id: 13, name: 'Malaria Test', category: 'Microbiology' },
-    { id: 14, name: 'HIV Test', category: 'Microbiology' },
-    { id: 15, name: 'Urinalysis', category: 'Urine' },
-    { id: 16, name: 'Stool Examination', category: 'Stool' },
-    { id: 17, name: 'Pregnancy Test (hCG)', category: 'Hormonal' },
-    { id: 18, name: 'Troponin', category: 'Cardiac' },
-    { id: 19, name: 'TSH', category: 'Hormonal' },
-  ];
+  const axios = useAxiosPrivate()
+
+  const [testCatalogs] = useSelector(state => {
+    return [state.testCatalogs]
+  })
+    const [labTests, setLabTests] = useState(testCatalogs)
+  let LabRequests = []
+
+  useEffect(() => {
+    if (testCatalogs?.length ?? 0 > 0)
+      return
+
+    const fetchLabTests = async () => {
+      try {
+
+        const entityResult = await axios.get('/lookups/lab-test-catalogs')
+        if (entityResult.status === 200) {
+          const success = true
+          const message = (entityResult?.data?.length ?? 0) + ' record(s) found'
+          setLabTests(entityResult.data)
+        } else {
+          const success = false
+          const message = 'Unable to get list of items: error - ' + entityResult.status
+        }
+      } catch (err) {
+        console.error('ERROR: ', err)
+        const success = false
+        //const message = err.response.data.error.message
+      }
+    }
+
+    fetchLabTests()
+  }, [])
+
 
   const [search, setSearch] = useState('');
   const [selectedTests, setSelectedTests] = useState([]);
 
-      const [object, setObject] = useState(entity)
+  const [object, setObject] = useState(entity)
 
+  const availableTests = labTests.map(test => {
+    return { id: test?.id, name: test?.test_name, category: test?.Category.name }
+  })
+  //[
+  //   { id: 1, name: 'Complete Blood Count', category: 'Hematology' },
+  // ];
 
   const filteredTests = useMemo(() => {
     return availableTests.filter((test) => {
@@ -39,7 +62,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
           test.category.toLowerCase().includes(keyword))
       );
     });
-  }, [search, selectedTests]);
+  }, [search, selectedTests, labTests]);
 
   const addTest = (test) => {
     setSelectedTests((prev) => [
@@ -64,26 +87,76 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
       )
     );
   };
-  
-    const handleChange = (field, value) => {
-        setVitals(prev => ({ ...prev, [field]: value }));
-    };
 
-    const handleClose = () => {
-        setOpen(false)
-        setModal({
-            Component: null,
-            modelOpen: false
-        })
+  const handleChange = (field, value) => {
+    setVitals(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleClose = () => {
+    setOpen(false)
+    setModal({
+      Component: null,
+      modelOpen: false
+    })
+  }
+
+  const handleSubmit = async () => {
+
+    if (selectedTests.length == 0) {
+      toast.error('No test selected to proceed')
+      return
     }
+
+    selectedTests.forEach(test => {
+      LabRequests.push(
+        {
+          appointment_id: entity.apointment_id,
+          test_id: test?.id,
+          request_notes: test?.notes,
+          request_date: getDbDate(new Date())
+        }
+      )
+    })
+
+    const form = { test_items: LabRequests }
+
+
+    let response
+
+      let success = true
+      let message = 'Lab test(s) requests update successfuly!'
+    try {
+      response = await axios.post('/appointments/', form)
+
+      if (response.status === 200) {
+
+        success = true
+        message = 'Lab test(s) requests update successfuly!'
+
+        toast.success(message)
+        handleClose()
+      } else {
+        success = false
+        message = response.data
+        toast.error(message)
+      }
+    } catch (err) {
+      console.error('POST_ERROR: ', err)
+      success = false
+      message = 'ERROR: ' + err.response.data.error.message
+      toast.error(message)
+    }
+  }
+
+
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-4">
       <div className="mx-auto max-w-6xl space-y-6">
-        
+
 
         <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className=" grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <label htmlFor="testSearch" className="mb-2 block text-sm font-medium text-slate-700">
                 Search by test name or category
@@ -104,7 +177,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div className=" rounded-2xl border border-slate-200 bg-slate-50 p-3">
             <div className="max-h-72 overflow-auto space-y-2">
               {filteredTests.length > 0 ? (
                 filteredTests.map((test) => (
@@ -116,7 +189,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
                   >
                     <div>
                       <div className="font-medium text-slate-900">{test.name}</div>
-                      <div className="mt-1 text-sm text-slate-500">{test.category}</div>
+                      <div className="text-sm text-slate-500">{test.category}</div>
                     </div>
                     <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">
                       Add
@@ -138,19 +211,19 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
               <h2 className="text-xl font-semibold text-slate-900">Selected Test List</h2>
               <p className="mt-1 text-sm text-slate-500">Review, prioritize, and annotate multiple requested tests.</p>
             </div>
-              <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
+            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
              text-white hover:bg-sky-700"
-             onClick={handleClose}
-             >
+              onClick={handleClose}
+            >
               Cancel Tests
             </button>
             <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
              text-white hover:bg-sky-700"
-             onClick={handleClose}
-             >
+              onClick={handleSubmit}
+            >
               Save Test Request
             </button>
-          
+
           </div>
 
           <div className="mt-6 space-y-4">
@@ -174,22 +247,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
                   </div>
 
                   <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">
-                        Priority
-                      </label>
-                      <select
-                        value={test.priority}
-                        onChange={(event) =>
-                          updateSelectedTest(test.id, 'priority', event.target.value)
-                        }
-                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                      >
-                        <option>Normal</option>
-                        <option>Urgent</option>
-                        <option>High Priority</option>
-                      </select>
-                    </div>
+
 
                     <div>
                       <label className="mb-2 block text-sm font-medium text-slate-700">

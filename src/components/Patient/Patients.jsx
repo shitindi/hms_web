@@ -136,8 +136,8 @@ export default function PatientList() {
     {
       field: 'status', headerName: 'Status', width: 150,
       renderCell: (params) =>
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusClasses(params.row.current_activity)}`}>
-          {(params.row.current_activity === 12 || params.row.current_activity === 13) ? 'Checked-out' : 'Checked-in'}
+        <span className={`px-2 py-1 rounded-full text-xs ${getStatusClasses(params.row?.current_activity ?? 13)}`}>
+          {(params.row?.current_activity === 12 || params.row?.current_activity === 13) ? 'Checked-out' : 'Checked-in'}
         </span>
     },
 
@@ -162,10 +162,9 @@ export default function PatientList() {
 
   if (entities.length < patients.length) {
     
-    setEntities(patients)
+      entities =patients
   }
   
-
   const rows = (entities || entities.length > 0) ?
     entities.map(p => (
       {
@@ -175,7 +174,7 @@ export default function PatientList() {
         gender_id: p?.Contact?.Gender?.name,
         age: getAgeFromBod(p.birth_date),
         joining_date: p.joining_date,
-        current_activity: p.CurrentActivity.ID,
+        current_activity: p?.Appointments[0]?.current_activity ?? 13,
         created_by: p.CreatedBy.Contact.first_name + ' ' + p.CreatedBy.Contact.last_name,
         last_visity: p.lastVisit,
 

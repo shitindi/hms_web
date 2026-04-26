@@ -10,6 +10,7 @@ import VitalsMeasurement from "../VitalMeasurement";
 import ModalContainer from "../ModalContainer";
 import PatientMedicalHistory from "./PatientMedicalHistory";
 import LabTestSelector from "../Doctor/LabTestSelector";
+import LabResults from "./LabResults";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
@@ -80,7 +81,7 @@ export default function PatientDetails() {
 
   const selectButtonStyle = (start = false) => {
     const activeStatuses = [3, 4, 5, 6, 7, 8, 9]
-    if (activeStatuses.includes(entity?.Patient?.current_activity ?? 2)) {
+    if (activeStatuses.includes(entity?.current_activity ?? 2)) {
       if (start === true)
         return "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
 
@@ -93,7 +94,7 @@ export default function PatientDetails() {
   }
 
   const handleBeginConsultation = async () => {
-    if (entity?.Patient?.current_activity !== 2) {
+    if (entity?.current_activity !== 2) {
       toast.warn('Consulation already started!')
       return
     }
@@ -107,7 +108,7 @@ export default function PatientDetails() {
 
       const response = await axios.post('/patients/update-status',
         {
-          patient_id: entity?.patient_id ?? -1,
+          appointment_id: entity?.id ?? -1,
           current_activity: 4
         }
       )
@@ -127,7 +128,7 @@ export default function PatientDetails() {
           prev.map(app =>
 
             app.id === entity.id ?
-              { ...app, Patient: { ...app.Patient, current_activity: 4 } }
+              { ...app,  current_activity: 4 }
               : app
 
           )
@@ -226,20 +227,7 @@ export default function PatientDetails() {
     },
   ];
 
-  const labResults = [
-    {
-      test: 'Malaria Rapid Test',
-      result: 'Positive',
-      date: '27 Mar 2026',
-      status: 'Reviewed',
-    },
-    {
-      test: 'Full Blood Count',
-      result: 'Mild anemia',
-      date: '27 Mar 2026',
-      status: 'Pending Follow-up',
-    },
-  ];
+
 
   const notes = [
     'Patient presented with fever, headache, and body weakness for 2 days.',
@@ -379,23 +367,7 @@ export default function PatientDetails() {
               </section>
 
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">Laboratory Results</h2>
-                <div className="mt-5 space-y-4">
-                  {labResults.map((item) => (
-                    <div key={item.test + item.date} className="rounded-2xl border border-slate-200 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-slate-900">{item.test}</div>
-                          <div className="mt-1 text-sm text-slate-600">{item.result}</div>
-                          <div className="mt-2 text-xs text-slate-500">{item.date}</div>
-                        </div>
-                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  <LabResults appointmentId={user.state.entity_id} />
               </section>
             </div>
           </div>

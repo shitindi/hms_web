@@ -5,12 +5,18 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { getAgeFromBod, getTimeFromDate } from "../../Utilities/DateTime";
 import UserContext from "../../context/UserProvider";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setCatalogsDetail } from "../../state/labTestCatalogsSlice";
 
 
 export default function DoctorDashboard() {
    
   const user = useContext(UserContext)
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+    const [testCatalogs] = useSelector(state => {
+    return [state.testCatalogs]
+  })
   const style = {
     position: 'absolute',
     top: '50%',
@@ -46,6 +52,17 @@ export default function DoctorDashboard() {
 
         setModalOpen(true)
         const entityResult = await axios.get('/appointments/by-doctor')
+
+        try{
+           if (!(testCatalogs && testCatalogs.length > 0)){
+             const testsResult = await axios.get('/lookups/lab-test-catalogs')
+        if (testsResult.status === 200) {
+          dispatch(setCatalogsDetail(testsResult.data))
+        } 
+          }
+        }catch (err){
+          console.error('FETCH TEST CAT: ', err)
+        }
 
         if (entityResult.status === 200) {
 
@@ -91,7 +108,7 @@ export default function DoctorDashboard() {
       age: getAgeFromBod(ent?.Patient?.birth_date),
       visitType: ent?.AppointmentType.name,
       time: getTimeFromDate(ent?.appointment_date),
-      status: ent?.Patient?.CurrentActivity.name,
+      status: ent?.PatientActivity.name,
       complaint: ent?.appointment_reason
     }
   )
