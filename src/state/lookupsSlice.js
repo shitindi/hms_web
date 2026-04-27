@@ -27,7 +27,9 @@ const initialState = {
     billing_options: [],
     insurers: [],
     lab_test_categories: [],
-    lab_result_statuses: []
+    lab_result_statuses: [],
+    MedicineForms: [],
+    prescription_statuses: []
 }
 
 

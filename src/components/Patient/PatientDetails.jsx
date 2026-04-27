@@ -236,7 +236,7 @@ export default function PatientDetails() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-4">
       {modal.Component && <ModalContainer
         Component={modal.Component}
         entity={vital}
@@ -257,7 +257,6 @@ export default function PatientDetails() {
 
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm text-slate-500">Patients / Medical Record / Details</p>
             <h1 className="mt-1 text-3xl font-bold text-slate-900">Patient Details & Medical Record</h1>
             <p className="mt-2 text-slate-600">
               Review patient demographics, visit history, prescriptions, lab results, and clinical notes in one place.
