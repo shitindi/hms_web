@@ -7,15 +7,16 @@ import UserContext from "../../context/UserProvider";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCatalogsDetail } from "../../state/labTestCatalogsSlice";
+import { setMedicinesDetail } from "../../state/medicineSlice";
 
 
 export default function DoctorDashboard() {
-   
+
   const user = useContext(UserContext)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-    const [testCatalogs] = useSelector(state => {
-    return [state.testCatalogs]
+  const [testCatalogs, medicines] = useSelector(state => {
+    return [state.testCatalogs, state.medicines]
   })
   const style = {
     position: 'absolute',
@@ -42,7 +43,7 @@ export default function DoctorDashboard() {
   }
   )
   const axios = useAxiosPrivate();
- // const [dashboard, setDatashboar] = useState(dashboardStats)
+  // const [dashboard, setDatashboar] = useState(dashboardStats)
   const [modalOpen, setModalOpen] = useState(false)
   let [entities, setEntities] = useState([])
 
@@ -53,14 +54,21 @@ export default function DoctorDashboard() {
         setModalOpen(true)
         const entityResult = await axios.get('/appointments/by-doctor')
 
-        try{
-           if (!(testCatalogs && testCatalogs.length > 0)){
-             const testsResult = await axios.get('/lookups/lab-test-catalogs')
-        if (testsResult.status === 200) {
-          dispatch(setCatalogsDetail(testsResult.data))
-        } 
+        try {
+          if (!(testCatalogs && testCatalogs.length > 0)) {
+            const testsResult = await axios.get('/lookups/lab-test-catalogs')
+            if (testsResult.status === 200) {
+              dispatch(setCatalogsDetail(testsResult.data))
+            }
           }
-        }catch (err){
+          if (!(medicines && medicines.length > 0)) {
+            const result = await axios.get('/pharmacy/medicines')
+            if (result.status === 200) {
+              dispatch(setMedicinesDetail(result.data))
+            }
+          }
+
+        } catch (err) {
           console.error('FETCH TEST CAT: ', err)
         }
 
@@ -149,8 +157,8 @@ export default function DoctorDashboard() {
   };
 
   const handleOpenPatient = id => {
-    user.setState({action: 4,entity_id: id, component: 'patientview' })
-    navigate('/patientview', {replace: true})
+    user.setState({ action: 4, entity_id: id, component: 'patientview' })
+    navigate('/patientview', { replace: true })
   }
 
   const getStatusClasses = (status) => {
@@ -205,7 +213,7 @@ export default function DoctorDashboard() {
                 <h2 className="text-xl font-semibold text-slate-900">Today’s Patient Queue</h2>
                 <p className="mt-1 text-sm text-slate-500">Track appointments, queue status, and main complaints.</p>
               </div>
-              
+
             </div>
 
             <Modal
@@ -247,8 +255,8 @@ export default function DoctorDashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <button className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 hover:bg-sky-100"
-                         onClick={()=> handleOpenPatient(item.id)}
-                         >
+                          onClick={() => handleOpenPatient(item.id)}
+                        >
                           Opens
                         </button>
                       </td>
@@ -277,8 +285,8 @@ export default function DoctorDashboard() {
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`rounded-xl px-4 py-2 text-sm font-medium ${currentPage === page
-                        ? 'bg-sky-600 text-white'
-                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      ? 'bg-sky-600 text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                   >
                     {page}
@@ -296,12 +304,12 @@ export default function DoctorDashboard() {
             </div>
           </div>
 
-     
+
         </section>
 
         <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
           <div className="space-y-6">
-        
+
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-slate-900">Lab Alerts</h2>
               <div className="mt-5 space-y-3">

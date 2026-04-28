@@ -23,7 +23,7 @@ const LabResults = ({appointmentId}) => {
       
         fetchLabTests()
       }, [])
-  console.error('RESUTS: ', result)
+
       const labResults = result.map ( res => {
         return {
             test: res?.TestCatalog.test_name,

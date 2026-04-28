@@ -11,6 +11,7 @@ import ModalContainer from "../ModalContainer";
 import PatientMedicalHistory from "./PatientMedicalHistory";
 import LabTestSelector from "../Doctor/LabTestSelector";
 import LabResults from "./LabResults";
+import PrescriptionSelector from "../Doctor/PrescriptionSelector";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
@@ -157,6 +158,13 @@ export default function PatientDetails() {
   const handleAddLabRequest = () => {
     setModal({
       Component: LabTestSelector,
+      modelOpen: true
+    })
+  }
+
+  const handleAddPrescription = () => {
+    setModal({
+      Component: PrescriptionSelector,
       modelOpen: true
     })
   }
@@ -401,7 +409,7 @@ export default function PatientDetails() {
                  <button className={selectButtonStyle()} onClick={handleAddLabRequest}>
                   Request Lab Test
                 </button>
-                <button className={selectButtonStyle()}>
+                <button className={selectButtonStyle()} onClick={handleAddPrescription}>
                   Add Prescription
                 </button>
                

@@ -2,67 +2,65 @@ import { useEffect, useMemo, useState } from 'react';
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { toast } from 'react-toastify';
 import { getDbDate } from '../../Utilities/DateTime';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-export default function LabTestSelector({ setOpen, entity, setModal }) {
+export default function PrescriptionSelector({ setOpen, entity, setModal }) {
   const axios = useAxiosPrivate()
-
-  const [testCatalogs] = useSelector(state => {
-    return [state.testCatalogs]
+  const dispatch = useDispatch()
+  const [medicines] = useSelector(state => {
+    return [state.medicines]
   })
-    const [labTests, setLabTests] = useState(testCatalogs)
-  let LabRequests = []
+  console.log('MCHONGO1: ', medicines)
+    const [medicineList, setMedicineList] = useState(medicines ?? [])
+  let Prescriptions = []
 
   useEffect(() => {
-    if (testCatalogs?.length ?? 0 > 0)
+    if (medicines?.length ?? 0 > 0)
       return
 
-    const fetchLabTests = async () => {
+    const fetchMedicines = async () => {
       try {
 
-        const entityResult = await axios.get('/lookups/lab-test-catalogs')
+        const entityResult = await axios.get('/pharmacy/medicines')
         if (entityResult.status === 200) {
-          setLabTests(entityResult.data)
+          dispatch(setMedicineList(entityResult.data))
+          setMedicineList(entityResult.data)
         } 
       } catch (err) {
         console.error('ERROR: ', err)
-        //const message = err.response.data.error.message
       }
     }
 
-    fetchLabTests()
+    fetchMedicines()
   }, [])
 
 
   const [search, setSearch] = useState('');
-  const [selectedTests, setSelectedTests] = useState([]);
+  const [selectedMedicines, setSelectedMedicines] = useState([]);
 
-  //const [object, setObject] = useState(entity)
-
-  const availableTests = labTests.map(test => {
-    return { id: test?.id, name: test?.test_name, category: test?.Category.name }
+console.log('MCHONGO2: ', medicineList)
+  const availableMedicines = medicineList.map(med => {
+    return { id: med?.id, name: med?.test_name, category: med?.Category.name }
   })
-  //[
-  //   { id: 1, name: 'Complete Blood Count', category: 'Hematology' },
-  // ];
 
-  const filteredTests = useMemo(() => {
-    return availableTests.filter((test) => {
+
+  const filteredMedicines = useMemo(() => {
+    return availableMedicines.filter((med) => {
       const keyword = search.toLowerCase().trim();
-      const alreadySelected = selectedTests.some((item) => item.id === test.id);
+      const alreadySelected = selectedMedicines.some((item) => item.id === med.id);
       return (
         !alreadySelected &&
-        (test.name.toLowerCase().includes(keyword) ||
-          test.category.toLowerCase().includes(keyword))
+        (med.name.toLowerCase().includes(keyword) ||
+          med.category.toLowerCase().includes(keyword))
       );
     });
-  }, [search, selectedTests, labTests]);
+  }, [search, selectedMedicines, medicineList]);
 
-  const addTest = (test) => {
-    setSelectedTests((prev) => [
+  const addMedicine = (med) => {
+    setSelectedMedicines((prev) => [
       ...prev,
       {
-        ...test,
+        ...med,
         priority: 'Normal',
         notes: '',
       },
@@ -70,12 +68,12 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
     setSearch('');
   };
 
-  const removeTest = (id) => {
-    setSelectedTests((prev) => prev.filter((item) => item.id !== id));
+  const removeMedicine = (id) => {
+    setSelectedMedicines((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateSelectedTest = (id, field, value) => {
-    setSelectedTests((prev) =>
+  const updateSelectedMedicine = (id, field, value) => {
+    setSelectedMedicines((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
       )
@@ -96,36 +94,36 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
 
   const handleSubmit = async () => {
 
-    if (selectedTests.length == 0) {
-      toast.error('No test selected to proceed')
+    if (selectedMedicines.length == 0) {
+      toast.error('No Medicine selected to proceed')
       return
     }
 
-    selectedTests.forEach(test => {
-      LabRequests.push(
+    selectedMedicines.forEach(med => {
+      Prescriptions.push(
         {
           appointment_id: entity.apointment_id,
-          test_id: test?.id,
-          request_notes: test?.notes,
+          test_id: med?.id,
+          request_notes: med?.notes,
           request_date: getDbDate(new Date())
         }
       )
     })
 
-    const form = { test_items: LabRequests }
+    const form = { test_items: Prescriptions }
 
 
     let response
 
       let success = true
-      let message = 'Lab test(s) requests update successfuly!'
+      let message = 'Prescriptions update successfuly!'
     try {
       response = await axios.post('/appointments/', form)
 
       if (response.status === 200) {
 
         success = true
-        message = 'Lab test(s) requests update successfuly!'
+        message = 'Prescriptions update successfuly!'
 
         toast.success(message)
         handleClose()
@@ -152,11 +150,11 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
         <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className=" grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <label htmlFor="testSearch" className="mb-2 block text-sm font-medium text-slate-700">
-                Search by test name or category
+              <label htmlFor="medicineSearch" className="mb-2 block text-sm font-medium text-slate-700">
+                Search by Medicine name or category
               </label>
               <input
-                id="testSearch"
+                id="medicineSearch"
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -166,24 +164,24 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
             </div>
 
             <div className="rounded-2xl bg-slate-50 p-2 text-sm text-slate-700">
-              <div className="font-medium text-slate-800">Selected Tests</div>
-              <div className="mt-2 text-3xl font-bold text-slate-900">{selectedTests.length}</div>
+              <div className="font-medium text-slate-800">Selected Medicines</div>
+              <div className="mt-2 text-3xl font-bold text-slate-900">{selectedMedicines.length}</div>
             </div>
           </div>
 
           <div className=" rounded-2xl border border-slate-200 bg-slate-50 p-3">
             <div className="max-h-72 overflow-auto space-y-2">
-              {filteredTests.length > 0 ? (
-                filteredTests.map((test) => (
+              {filteredMedicines.length > 0 ? (
+                filteredMedicines.map((prs) => (
                   <button
-                    key={test.id}
+                    key={prs.id}
                     type="button"
-                    onClick={() => addTest(test)}
+                    onClick={() => addMedicine(prs)}
                     className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4  text-left hover:border-sky-200 hover:bg-sky-50"
                   >
                     <div>
-                      <div className="font-medium text-slate-900">{test.name}</div>
-                      <div className="text-sm text-slate-500">{test.category}</div>
+                      <div className="font-medium text-slate-900">{prs.name}</div>
+                      <div className="text-sm text-slate-500">{prs.category}</div>
                     </div>
                     <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">
                       Add
@@ -192,7 +190,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
                 ))
               ) : (
                 <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-500">
-                  No matching tests found.
+                  No matching Medicines found.
                 </div>
               )}
             </div>
@@ -202,38 +200,38 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Selected Test List</h2>
-              <p className="mt-1 text-sm text-slate-500">Review, prioritize, and annotate multiple requested tests.</p>
+              <h2 className="text-xl font-semibold text-slate-900">Selected Medicine List</h2>
+              <p className="mt-1 text-sm text-slate-500">Review, prioritize, and annotate multiple requested Medicines.</p>
             </div>
             <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
              text-white hover:bg-sky-700"
               onClick={handleClose}
             >
-              Cancel Tests
+              Cancel
             </button>
             <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
              text-white hover:bg-sky-700"
               onClick={handleSubmit}
             >
-              Save Test Request
+              Save Prescription
             </button>
 
           </div>
 
           <div className="mt-6 space-y-4">
-            {selectedTests.length > 0 ? (
-              selectedTests.map((test, index) => (
-                <div key={test.id} className="rounded-3xl border border-slate-200 p-5">
+            {selectedMedicines.length > 0 ? (
+              selectedMedicines.map((med, index) => (
+                <div key={med.id} className="rounded-3xl border border-slate-200 p-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Test #{index + 1}</div>
-                      <div className="mt-1 text-lg font-semibold text-slate-900">{test.name}</div>
-                      <div className="mt-1 text-sm text-slate-500">Category: {test.category}</div>
+                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Medicine #{index + 1}</div>
+                      <div className="mt-1 text-lg font-semibold text-slate-900">{med.name}</div>
+                      <div className="mt-1 text-sm text-slate-500">Category: {med.category}</div>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => removeTest(test.id)}
+                      onClick={() => removeMedicine(med.id)}
                       className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
                     >
                       Remove
@@ -249,11 +247,11 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
                       </label>
                       <input
                         type="text"
-                        value={test.notes}
+                        value={med.notes}
                         onChange={(event) =>
-                          updateSelectedTest(test.id, 'notes', event.target.value)
+                          updateSelectedMedicine(med.id, 'notes', event.target.value)
                         }
-                        placeholder="Reason or instruction for this test"
+                        placeholder="Reason or instruction for this Medicine"
                         className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
@@ -262,9 +260,9 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
               ))
             ) : (
               <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 p-10 text-center">
-                <div className="text-lg font-semibold text-slate-800">No tests selected yet</div>
+                <div className="text-lg font-semibold text-slate-800">No Medicines selected yet</div>
                 <p className="mt-2 text-sm text-slate-500">
-                  Use the searchable list above to add one or more tests to the request.
+                  Use the searchable list above to add one or more Medicines to the request.
                 </p>
               </div>
             )}
