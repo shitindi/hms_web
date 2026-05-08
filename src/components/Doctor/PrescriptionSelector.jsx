@@ -3,6 +3,8 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { toast } from 'react-toastify';
 import { getDbDate } from '../../Utilities/DateTime';
 import { useDispatch, useSelector } from 'react-redux';
+import { TextField } from '@mui/material';
+import { setMedicinesDetail } from '../../state/medicineSlice';
 
 export default function PrescriptionSelector({ setOpen, entity, setModal }) {
   const axios = useAxiosPrivate()
@@ -10,11 +12,25 @@ export default function PrescriptionSelector({ setOpen, entity, setModal }) {
   const [medicines] = useSelector(state => {
     return [state.medicines]
   })
-  console.log('MCHONGO1: ', medicines)
-    const [medicineList, setMedicineList] = useState(medicines ?? [])
+
+  const [medicineList, setMedicineList] = useState(medicines ?? [])
   let Prescriptions = []
 
   useEffect(() => {
+    if (entity?.Prescription && entity?.Prescription.length > 0) {
+      entity.Prescription.forEach(med => {
+        addMedicine({
+          id: med?.id,
+          name: med?.Medicine.name + ', ' + med?.Medicine?.Form.name,
+          manufacturer: med?.manufacturer,
+          dosage: med?.dosage,
+          quantity: med?.quantity,
+          frequency: med?.frequency,
+          duration: med?.duration
+        })
+      })
+    }
+
     if (medicines?.length ?? 0 > 0)
       return
 
@@ -23,9 +39,10 @@ export default function PrescriptionSelector({ setOpen, entity, setModal }) {
 
         const entityResult = await axios.get('/pharmacy/medicines')
         if (entityResult.status === 200) {
-          dispatch(setMedicineList(entityResult.data))
+
+          dispatch(setMedicinesDetail(entityResult.data))
           setMedicineList(entityResult.data)
-        } 
+        }
       } catch (err) {
         console.error('ERROR: ', err)
       }
@@ -38,9 +55,12 @@ export default function PrescriptionSelector({ setOpen, entity, setModal }) {
   const [search, setSearch] = useState('');
   const [selectedMedicines, setSelectedMedicines] = useState([]);
 
-console.log('MCHONGO2: ', medicineList)
   const availableMedicines = medicineList.map(med => {
-    return { id: med?.id, name: med?.test_name, category: med?.Category.name }
+    return {
+      id: med?.id,
+      name: med?.name + ', ' + med?.Form.name,
+      manufacturer: med?.manufacturer
+    }
   })
 
 
@@ -51,7 +71,7 @@ console.log('MCHONGO2: ', medicineList)
       return (
         !alreadySelected &&
         (med.name.toLowerCase().includes(keyword) ||
-          med.category.toLowerCase().includes(keyword))
+          med.manufacturer.toLowerCase().includes(keyword))
       );
     });
   }, [search, selectedMedicines, medicineList]);
@@ -62,7 +82,7 @@ console.log('MCHONGO2: ', medicineList)
       {
         ...med,
         priority: 'Normal',
-        notes: '',
+        // notes: '',
       },
     ]);
     setSearch('');
@@ -93,7 +113,6 @@ console.log('MCHONGO2: ', medicineList)
   }
 
   const handleSubmit = async () => {
-
     if (selectedMedicines.length == 0) {
       toast.error('No Medicine selected to proceed')
       return
@@ -102,23 +121,28 @@ console.log('MCHONGO2: ', medicineList)
     selectedMedicines.forEach(med => {
       Prescriptions.push(
         {
-          appointment_id: entity.apointment_id,
-          test_id: med?.id,
-          request_notes: med?.notes,
-          request_date: getDbDate(new Date())
+          appointment_id: entity.id,
+          medicine_id: med?.id,
+          dosage: med?.dosage,
+          frequency: med?.frequency,
+          duration: med?.duration,
+          quantity: med?.quantity,
+          status_id: 1
+
+          //request_date: getDbDate(new Date())
         }
       )
     })
 
-    const form = { test_items: Prescriptions }
+    const form = { prescription_items: Prescriptions }
 
 
     let response
 
-      let success = true
-      let message = 'Prescriptions update successfuly!'
+    let success = true
+    let message = 'Prescriptions update successfuly!'
     try {
-      response = await axios.post('/appointments/', form)
+      response = await axios.post('/pharmacy/prescription', form)
 
       if (response.status === 200) {
 
@@ -151,7 +175,7 @@ console.log('MCHONGO2: ', medicineList)
           <div className=" grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <label htmlFor="medicineSearch" className="mb-2 block text-sm font-medium text-slate-700">
-                Search by Medicine name or category
+                Search by Medicine name or manufacturer
               </label>
               <input
                 id="medicineSearch"
@@ -181,7 +205,7 @@ console.log('MCHONGO2: ', medicineList)
                   >
                     <div>
                       <div className="font-medium text-slate-900">{prs.name}</div>
-                      <div className="text-sm text-slate-500">{prs.category}</div>
+                      <div className="text-sm text-slate-500">{prs.manufacturer}</div>
                     </div>
                     <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">
                       Add
@@ -203,8 +227,8 @@ console.log('MCHONGO2: ', medicineList)
               <h2 className="text-xl font-semibold text-slate-900">Selected Medicine List</h2>
               <p className="mt-1 text-sm text-slate-500">Review, prioritize, and annotate multiple requested Medicines.</p>
             </div>
-            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
-             text-white hover:bg-sky-700"
+            <button className="rounded-2xl  bg-red-400 px-5 py-3 text-sm font-medium
+             text-white hover:bg-red-600"
               onClick={handleClose}
             >
               Cancel
@@ -221,12 +245,12 @@ console.log('MCHONGO2: ', medicineList)
           <div className="mt-6 space-y-4">
             {selectedMedicines.length > 0 ? (
               selectedMedicines.map((med, index) => (
-                <div key={med.id} className="rounded-3xl border border-slate-200 p-5">
+                <div key={med.id} className="rounded-3xl border border-slate-500 p-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Medicine #{index + 1}</div>
+                      {/* { <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Medicine #{index + 1}</div>} */}
                       <div className="mt-1 text-lg font-semibold text-slate-900">{med.name}</div>
-                      <div className="mt-1 text-sm text-slate-500">Category: {med.category}</div>
+                      <div className="mt-1 text-sm text-slate-500">Manufacturer: {med.manufacturer}</div>
                     </div>
 
                     <button
@@ -238,20 +262,51 @@ console.log('MCHONGO2: ', medicineList)
                     </button>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-
+                  <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
 
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">
-                        Clinical Note
-                      </label>
-                      <input
-                        type="text"
-                        value={med.notes}
+
+                      <TextField
+                        size='small' label='Dosage'
+                        value={med.dosage}
                         onChange={(event) =>
-                          updateSelectedMedicine(med.id, 'notes', event.target.value)
+                          updateSelectedMedicine(med.id, 'dosage', event.target.value)
                         }
-                        placeholder="Reason or instruction for this Medicine"
+                        placeholder="Dosage"
+                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                      />
+                    </div>
+                    <div>
+
+                      <TextField
+                        size='small' label='Quantity'
+                        value={med.quantity}
+                        onChange={(event) =>
+                          updateSelectedMedicine(med.id, 'quantity', event.target.value)
+                        }
+                        placeholder="Quantity"
+                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                      />
+                    </div>
+                    <div>
+                      <TextField
+                        size='small' label='Frequency'
+                        value={med.frequency}
+                        onChange={(event) =>
+                          updateSelectedMedicine(med.id, 'frequency', event.target.value)
+                        }
+                        placeholder="Frequency"
+                        className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                      />
+                    </div>
+                    <div>
+                      <TextField
+                        size='small' label='Duration'
+                        value={med.duration}
+                        onChange={(event) =>
+                          updateSelectedMedicine(med.id, 'duration', event.target.value)
+                        }
+                        placeholder="Duration"
                         className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                       />
                     </div>

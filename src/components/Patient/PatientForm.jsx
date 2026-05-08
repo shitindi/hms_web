@@ -44,6 +44,7 @@ export default function PatientForm(props) {
     gender_id: entity?.Contact?.gender_id,
     tenant_id: userInfo.tenantId ,
 
+    registration_no: entity?.registration_no,
     id_type: entity?.id_type,
     id_number: entity?.id_number,
     marital_status: entity?.marital_status,
@@ -82,6 +83,7 @@ export default function PatientForm(props) {
     if (!form.mobile_no?.trim()) errs.mobile_no = "Mobile number is required";
     if (!form.gender_id) errs.gender_id = "Gender is required"
     if (!form.birth_date) errs.birth_date = "Birthdate is required"
+    if(!form.registration_no) errs.registration_no = "Registration no is required"
     if (!form.next_kin_name) errs.next_kin_name = "Next of kin is required"
     if (!form.next_kin_type) errs.next_kin_type = "Next of kin relation is required"
     if (!form.next_kin_phone) errs.next_kin_phone = "Next of kin phone is required"
@@ -175,6 +177,13 @@ export default function PatientForm(props) {
                   <h2 className="text-xl font-semibold text-slate-900">Personal Information</h2>
                 </div>
 
+              </div>
+              <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <TextField
+                    size="small" name="registration_no" error={!!errors.registration_no} helperText={errors.registration_no}
+                    required label="Registration No." value={form.registration_no} onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">

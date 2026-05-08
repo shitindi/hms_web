@@ -1,28 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import useAxiosPrivate from '../../hooks/useAxiosPrivate'
 
-const LabResults = ({appointmentId}) => {
+const LabResults = ({ result}) => {
 
-    const [result, setResult] = useState([])
+   //const [result, setResult] = useState([])
     const axios = useAxiosPrivate()
-      useEffect(() => {
 
-        const fetchLabTests = async () => {
-          try {
-    
-            const entityResult = await axios.get(`/appointments/lab-results/${appointmentId}`)
-            if (entityResult.status === 200) {
-              const success = true
-              const message = (entityResult?.data?.length ?? 0) + ' record(s) found'
-              setResult(entityResult.data)
-            } 
-          } catch (err) {
-            console.error('ERROR: ', err)
-          }
-        } 
-      
-        fetchLabTests()
-      }, [])
 
       const labResults = result.map ( res => {
         return {

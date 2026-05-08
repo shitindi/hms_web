@@ -136,7 +136,7 @@ export default function AppointmentsList() {
 
         if (entityResult.status === 200) {
           const success = true
-          const message = entityResult.data.length ?? 0 + ' records found'
+          const message = (entityResult.data.length ?? 0) + ' records found'
           setApiMessage({ success, message })
           setEntities(entityResult.data)
           dispatch(setAppointmentsDetail(entityResult.data))

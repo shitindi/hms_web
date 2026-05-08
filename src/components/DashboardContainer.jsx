@@ -1,6 +1,8 @@
 import { useSelector } from "react-redux"
 import Dashboard from "./Dashboard"
 import DoctorDashboard from "./Dashboards/DoctorDashboard"
+import ReceptionistDashboard from "./Dashboards/ReceptionistDashboard"
+import BillingDashboard from "./Dashboards/BillingDashboard"
 
 const DashboardContainer = () => {
     const [userInfo] = useSelector(state => {
@@ -17,9 +19,9 @@ const DashboardContainer = () => {
                 case 3: // Pharmacist
                     return <Dashboard />
                 case 4: // Receptionist
-                    return <Dashboard />
+                    return <ReceptionistDashboard />
                 case 5: // Cashier
-                    return <Dashboard />
+                    return <BillingDashboard />
                 case 6: // Ward Staff
                     return <Dashboard />
                 default:

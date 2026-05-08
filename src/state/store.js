@@ -7,6 +7,7 @@ import doctorSlice from './doctorsSlice'
 import patientsSlice from './patientsSlice'
 import appointmentSlice from './appointmentSlice'
 import labTestCatalogSlice from './labTestCatalogsSlice'
+import medicineSlice from './medicineSlice'
 
 import storage from 'redux-persist/es/storage'
 import {persistReducer ,
@@ -41,7 +42,8 @@ const reducer = combineReducers(
     doctors: doctorSlice,
     patients: patientsSlice,
     appointments: appointmentSlice,
-    testCatalogs: labTestCatalogSlice
+    testCatalogs: labTestCatalogSlice,
+    medicines : medicineSlice
 }
 )
 

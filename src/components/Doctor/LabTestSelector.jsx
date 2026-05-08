@@ -3,6 +3,7 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import { toast } from 'react-toastify';
 import { getDbDate } from '../../Utilities/DateTime';
 import { useSelector } from 'react-redux';
+import { TextField } from '@mui/material';
 
 export default function LabTestSelector({ setOpen, entity, setModal }) {
   const axios = useAxiosPrivate()
@@ -14,6 +15,13 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
   let LabRequests = []
 
   useEffect(() => {
+
+    
+    if (entity?.LabReqests && entity?.LabReqests.length > 0){
+       entity.LabReqests.forEach( test => {
+        addTest({ id: test?.id, name: test?.TestCatalog?.test_name, category: test?.TestCatalog?.Category.name , notes: test?.request_notes})
+       })
+    }
     if (testCatalogs?.length ?? 0 > 0)
       return
 
@@ -37,7 +45,6 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
   const [search, setSearch] = useState('');
   const [selectedTests, setSelectedTests] = useState([]);
 
-  //const [object, setObject] = useState(entity)
 
   const availableTests = labTests.map(test => {
     return { id: test?.id, name: test?.test_name, category: test?.Category.name }
@@ -59,12 +66,13 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
   }, [search, selectedTests, labTests]);
 
   const addTest = (test) => {
+
     setSelectedTests((prev) => [
       ...prev,
       {
         ...test,
         priority: 'Normal',
-        notes: '',
+       // notes: '',
       },
     ]);
     setSearch('');
@@ -104,7 +112,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
     selectedTests.forEach(test => {
       LabRequests.push(
         {
-          appointment_id: entity.apointment_id,
+          appointment_id: entity.id,
           test_id: test?.id,
           request_notes: test?.notes,
           request_date: getDbDate(new Date())
@@ -120,7 +128,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
       let success = true
       let message = 'Lab test(s) requests update successfuly!'
     try {
-      response = await axios.post('/appointments/', form)
+      response = await axios.post('/appointments/lab-request', form)
 
       if (response.status === 200) {
 
@@ -205,8 +213,8 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
               <h2 className="text-xl font-semibold text-slate-900">Selected Test List</h2>
               <p className="mt-1 text-sm text-slate-500">Review, prioritize, and annotate multiple requested tests.</p>
             </div>
-            <button className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium
-             text-white hover:bg-sky-700"
+            <button className="rounded-2xl bg-red-400 px-5 py-3 text-sm font-medium
+             text-white hover:bg-red-600"
               onClick={handleClose}
             >
               Cancel Tests
@@ -228,7 +236,7 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
                     <div>
                       <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Test #{index + 1}</div>
                       <div className="mt-1 text-lg font-semibold text-slate-900">{test.name}</div>
-                      <div className="mt-1 text-sm text-slate-500">Category: {test.category}</div>
+                      <div className="mt-1 text-sm text-slate-500">{test.category}</div>
                     </div>
 
                     <button
@@ -244,11 +252,8 @@ export default function LabTestSelector({ setOpen, entity, setModal }) {
 
 
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-slate-700">
-                        Clinical Note
-                      </label>
-                      <input
-                        type="text"
+                      <TextField
+                        size='small' label='Clinical Note'
                         value={test.notes}
                         onChange={(event) =>
                           updateSelectedTest(test.id, 'notes', event.target.value)

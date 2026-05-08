@@ -1,13 +1,20 @@
 import { useRef, useState } from 'react';
 
-export default function RichTextEditorBasic() {
+export default function RichTextEditor({ setOpen, entity, setModal }) {
   const editorRef = useRef(null);
   const [htmlContent, setHtmlContent] = useState('');
 
   const formatText = (command, value = null) => {
-    document.execCommand(command, false, value);
+    // document.execCommand(command, false, value);
+    // editorRef.current?.focus();
+    // setHtmlContent(editorRef.current?.innerHTML || '');
+
     editorRef.current?.focus();
-    setHtmlContent(editorRef.current?.innerHTML || '');
+
+    setTimeout(() => {
+      document.execCommand(command, false, value);
+      setHtmlContent(editorRef.current?.innerHTML || "");
+    }, 0);
   };
 
   const handleInput = () => {
@@ -21,8 +28,24 @@ export default function RichTextEditorBasic() {
     { label: 'S', action: () => formatText('strikeThrough'), title: 'Strikethrough' },
   ];
 
+  const handleClose = () => {
+    setOpen(false)
+    setModal({
+      Component: null,
+      modelOpen: false
+    })
+  }
+
   return (
+
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <style>
+        {`
+  .rich-editor ul { list-style-type: disc; padding-left: 1.5rem; }
+  .rich-editor ol { list-style-type: decimal; padding-left: 1.5rem; }
+  .rich-editor li { display: list-item; }
+`}
+      </style>
       <div className="border-b border-slate-200 bg-slate-50 p-4">
         <div className="flex flex-wrap items-center gap-2">
           {toolbarButtons.map((button) => (
@@ -39,6 +62,7 @@ export default function RichTextEditorBasic() {
 
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => formatText('insertUnorderedList')}
             className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
@@ -47,6 +71,7 @@ export default function RichTextEditorBasic() {
 
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => formatText('insertOrderedList')}
             className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
@@ -111,16 +136,15 @@ export default function RichTextEditorBasic() {
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
-        className="min-h-[260px] w-full p-5 outline-none prose prose-slate max-w-none"
+        className="min-h-[260px] w-full p-5 outline-none prose prose-slate max-w-none rich-editor"
         style={{ whiteSpace: 'pre-wrap' }}
       >
-        <p>Start writing here...</p>
       </div>
 
-      <div className="border-t border-slate-200 bg-slate-50 p-4">
+      <div className="border-t border-slate-200 bg-slate-50 p-4 ">
         <div className="mb-2 text-sm font-medium text-slate-700">HTML Preview</div>
         <pre className="max-h-48 overflow-auto rounded-2xl bg-slate-900 p-4 text-xs text-slate-100">
-{htmlContent || '<p>Start writing here...</p>'}
+          {htmlContent || '<p>Start writing here...</p>'}
         </pre>
       </div>
     </div>

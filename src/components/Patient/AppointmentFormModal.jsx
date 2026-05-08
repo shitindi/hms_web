@@ -11,22 +11,20 @@ import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { getDbDate, getTimeFromDate } from "../../Utilities/DateTime";
+import { getDbDate, getStringDate, getTimeFromDate } from "../../Utilities/DateTime";
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { generateRandomNo } from "../../Utilities/misc";
 import { resetAppointments } from "../../state/appointmentSlice";
 
 
-export default function AppointmentForm(props) {
+export default function AppointmentFormModal({ setOpen, entity, setModal }) {
 
-  const { entity, setEditForm } = props
+  //const { entity, setEditForm } = props
   const feeRef = useRef()
   const [userInfo, doctors, patients, departments, visitTypes, appointmentPriorities, appoitmentStatuses] = useSelector(state => {
     return [state.userroles, state.doctors, state.patients, state.lookups.departments, state.lookups.appointment_types,
     state.lookups.priorities, state.lookups.appointment_statuses]
   })
-
-
 
   const navigate = useNavigate()
   const axios = useAxiosPrivate()
@@ -47,7 +45,10 @@ export default function AppointmentForm(props) {
     email_notification: entity?.email_notification ?? false,
     appointment_no: entity?.appointment_no,
     created_by: entity?.created_by ?? userInfo.userId,
-    appointment_fee: entity?.appointment_fee ?? 0
+    appointment_fee: entity?.appointment_fee ?? 0,
+    current_activity: entity?.PatientActivity.name ?? 'NA',
+    appointment_date: getStringDate(entity?.appointment_date),
+    appointment_time: getTimeFromDate(entity?.appointment_date)
   })
 
   const [errors, setErrors] = useState('')
@@ -62,21 +63,30 @@ export default function AppointmentForm(props) {
   })
 
   const handleChange = (e) => {
-    if (e.target.name=='doctor_id'){
-      const doctorId = e.target.value
-      const doctor = doctors.find( dr => dr.id == doctorId)
-      setForm({ ...form, [e.target.name]: e.target.value, appointment_fee: doctor?.consultation_fee ?? 0})
+    // if (e.target.name == 'doctor_id') {
+    //   const doctorId = e.target.value
+    //   const doctor = doctors.find(dr => dr.id == doctorId)
+    //   setForm({ ...form, [e.target.name]: e.target.value, appointment_fee: doctor?.consultation_fee ?? 0 })
 
-    }else {
-      setForm({ ...form, [e.target.name]: e.target.value })
-    }
-    
+    // } else {
+    //   setForm({ ...form, [e.target.name]: e.target.value })
+    // }
+    return
   }
 
   const handleCheck = (e) => {
     setForm({ ...form, [e.target.name]: e.target.checked });
 
   }
+
+  const handleClose = () => {
+    setOpen(false)
+    setModal({
+      Component: null,
+      modelOpen: false
+    })
+  }
+
 
   const validate = () => {
     const errs = {};
@@ -91,7 +101,7 @@ export default function AppointmentForm(props) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    return
 
     let success = true
     let message = "Appointment registered successfuly"
@@ -156,17 +166,6 @@ export default function AppointmentForm(props) {
   return (
     <div className="min-h-screen bg-slate-100 ">
       <div className="mx-auto max-w-7xl ">
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h4 className="text-3xl font-bold text-slate-900">Appointment Registration</h4>
-            <p className=" text-slate-600">
-              Capture appointment details, doctor, patient and appointment date
-            </p>
-
-          </div>
-
-
-        </header>
 
         <form onSubmit={handleSubmit} className="mt-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
 
@@ -186,34 +185,52 @@ export default function AppointmentForm(props) {
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" name="appointment_no" required type="text" value={form.appointment_no}
                     label="Appointment No." onChange={handleChange} error={!!errors.appointment_no} helperText={errors.appointment_no}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
+
               </div>
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
 
                 <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      size="small" name="appointment_date" label=" Appointment date" value={dayjs(appointmentDate)} onChange={(date) => setAppointmentDate(date)}
-                      className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                    />
-                  </LocalizationProvider>
-                </div>
-                <div>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <TimePicker
-                      label="Appointment time"
-                      value={appointmentTime}
-                      onChange={(time) => setAppointmentTime(time)}
-                    />
-                  </LocalizationProvider>
+                  <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
+                    size="small" name="appointment_date" required type="text" value={form.appointment_date}
+                    label="Appointment date" onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
                 </div>
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
+                    size="small" name="appointment_time" required type="text" value={form.appointment_time}
+                    label="Appointment time" onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="patient_id" label="Patient" value={form.patient_id}
                     onChange={handleChange} error={!!errors.patient_id} helperText={errors.patient_id}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -230,6 +247,11 @@ export default function AppointmentForm(props) {
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="doctor_id" label="Doctor" value={form.doctor_id}
                     onChange={handleChange} error={!!errors.doctor_id} helperText={errors.doctor_id}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -246,6 +268,11 @@ export default function AppointmentForm(props) {
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="visit_type" label="Visit type" value={form.visit_type} required
                     onChange={handleChange} error={!!errors.visit_type} helperText={errors.visit_type}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -261,6 +288,11 @@ export default function AppointmentForm(props) {
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="priority" label="Priority" value={form.priority}
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -275,6 +307,11 @@ export default function AppointmentForm(props) {
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="department_id" label="Department" value={form.department_id}
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -289,6 +326,11 @@ export default function AppointmentForm(props) {
 
                 <div>
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     size="small" select name="appointment_status" label="Status" value={form.appointment_status}
                     onChange={handleChange}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
@@ -298,60 +340,49 @@ export default function AppointmentForm(props) {
                       (appoitmentStatuses && appoitmentStatuses.length > 0) &&
                       appoitmentStatuses.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
-                  </TextField> 
+                  </TextField>
                 </div>
                 <div>
                   <TextField
-                    size="small" name="appointment_fee" required type="number" value={form.appointment_fee}
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
+                    size="small" name="appointment_fee" type="number" value={form.appointment_fee}
                     label="Appointment Fee" onChange={handleChange} ref={feeRef}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
-
+                <div>
+                  <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
+                    size="small" name="current_activity" value={form.current_activity}
+                    label="File location" onChange={handleChange} ref={feeRef}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
                 <div className="md:col-span-2">
                   <TextField
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                     name="appointment_reason" multiline="true" value={form.appointment_reason} onChange={handleChange}
                     rows="2"
                     label="Appointment reason"
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
-
-
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">Notifications</h2>
 
-              <div className="mt-6 pb-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <Checkbox
-                    name="sms_notification"
-                    checked={form.sms_notification}
-                    onChange={handleCheck}
-                  /> Notify with SMS
-                </div>
-
-                <div>
-                  <Checkbox
-                    name="email_notification"
-                    checked={form.email_notification}
-                    onChange={handleCheck}
-                  /> Notify With Email
-                </div>
-
-                <div className="md:col-span-2">
-                  <TextField
-                    name="notification_notes" multiline="true" value={form.notification_notes} onChange={handleChange}
-                    rows="2"
-                    label="Notification notes"
-                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
-                  />
-                </div>
-
-              </div>
-            </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-slate-900">Actions</h2>
@@ -359,21 +390,10 @@ export default function AppointmentForm(props) {
                 <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div>
                     <button
-                      type="submit"
-                      className="w-full rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white hover:bg-sky-700"
-                    >
-                      Register Appointment
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <div>
-                    <button
-                      type="button" onClick={handleCancel}
+                      type="button" onClick={handleClose}
                       className="w-full rounded-2xl border border-slate-300 bg-red-700 px-5 py-3 text-sm font-medium text-white hover:bg-red-800"
                     >
-                      Cancel
+                      Close
                     </button>
                   </div>
                 </div>

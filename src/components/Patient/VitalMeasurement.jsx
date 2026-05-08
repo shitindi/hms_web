@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -8,7 +8,7 @@ export default function VitalsMeasurement({ setOpen, entity, setModal }) {
     const [userInfo] = useSelector(state => {
         return [state.userroles]
     })
-
+    entity = entity?.PatientVital ?? {}
     const [vitals, setVitals] = useState({
         id: entity?.id,
         tenant_id: userInfo.tenantId,

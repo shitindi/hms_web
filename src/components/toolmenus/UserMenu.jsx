@@ -3,17 +3,16 @@ import UserContext from '../../context/UserProvider'
 
 
 
-const PatientMenu = (prop) => {
+const UserMenu = (prop) => {
 
   const user = useContext(UserContext)
 
-  const handleAddPatient = () => {
+  const handleAddUser = () => {
     if (user.state.action===1)
       return
 
-    user.setState({ ...user.state, action: 1 , component: 'patients'})
+    user.setState({ ...user.state, action: 1 , component: 'staffs'})
   }
-  
   return (
     ( prop?.data?.action !==4) ? 
     <></> 
@@ -21,27 +20,23 @@ const PatientMenu = (prop) => {
     <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center lg:justify-start">
        <input
             type="text"
-            placeholder="Search patients, doctors..."
+            placeholder="Search Ssers..."
             className="w-full lg:w-72 rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
           />
 
           <div className="flex flex-wrap gap-2">
 
-            <button onClick={handleAddPatient}
+            <button onClick={handleAddUser}
               className="rounded-2xl border border-slate-300 bg-sky-600 px-4 py-3 text-sm font-medium text-white hover:bg-sky-700"
             >
-              Add Patient
+              Add User
             </button>
 
-            <button
-              className="rounded-2xl border border-slate-300 bg-sky-600 px-4 py-3 text-sm font-medium text-white hover:bg-sky-700"
-            >
-              Add Appointment
-            </button>
+      
            
           </div>
     </div>
   )
 }
 
-export default PatientMenu
+export default UserMenu

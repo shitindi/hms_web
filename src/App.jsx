@@ -12,6 +12,7 @@ import NotFoundPage from './pages/NoMatch'
 import Logout from './components/Logout'
 import DashboardContainer from './components/DashboardContainer'
 import PatientDetails from './components/Patient/PatientDetails'
+import UsersList from './components/Administration/Users'
 
 function App() {
   //const [count, setCount] = useState(0)
@@ -37,6 +38,7 @@ function App() {
         <Routes>
            <Route element= {<RequireAuth allowedRoles={[10000000]} />} >
             <Route path='/' element={  <DashboardContainer />} />
+             <Route path='/staffs' element={<UsersList />} />
             <Route path='/patients' element={<PatientList />} />
             <Route path='/doctors' element = {<DoctorsList />}/>
             <Route path='/appointments' element={<AppointmentsList />} />

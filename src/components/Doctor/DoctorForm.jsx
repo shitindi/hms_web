@@ -63,6 +63,7 @@ export default function DoctorForm(props) {
     year_of_experience: entity?.year_of_experience ?? 0,
     is_active: true,
     employment_type: entity?.employment_type,
+    consultation_fee: entity?.consultation_fee
   })
 
   const [errors, setErrors] = useState('')
@@ -93,7 +94,11 @@ export default function DoctorForm(props) {
     if (!form.gender_id) errs.gender_id = "Gender is required"
     if (!form.user_name) errs.user_name = "User name is required"
      if (!form.password) errs.password = "password is required"
-    if (form.password && form.password != form.confirm_password) errs.next_kin_type = "Password did not match"
+    if (form.password && form.password != form.confirm_password) errs.password = "Password did not match"
+
+    if (!form.year_of_experience) errs.year_of_experience = "Year of experience is required"
+    if (!form.employment_type) errs.employment_type = "Employment type is required"
+
     return errs
   }
 
@@ -106,7 +111,6 @@ export default function DoctorForm(props) {
     let message = "Doctor registered successfuly"
 
 
-    window.scrollTo(0, 0)
     setForm({ ...form, joining_date: getDbDate(joinDate) })
   
 
@@ -115,6 +119,7 @@ export default function DoctorForm(props) {
     setErrors(errs)
  
     if (Object.keys(errs).length === 0) {
+    window.scrollTo(0, 0)
 
       let response
       try {
@@ -350,6 +355,7 @@ export default function DoctorForm(props) {
                 <div>
                   <TextField
                     size="small" name="year_of_experience" value={form.year_of_experience} onChange={handleChange}
+                    error={!!errors.year_of_experience} helperText={errors.year_of_experience}
                     label="Years Experience" type="number" slotProps={{ htmlInput: { min: 0, max: 100 } }}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   />
@@ -357,7 +363,7 @@ export default function DoctorForm(props) {
                 <div>
                   <TextField
                     size="small" select name="employment_type" label="Employment type" value={form.employment_type}
-                    onChange={handleChange}
+                    onChange={handleChange}  error={!!errors.employment_type} helperText={errors.employment_type}
                     className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     <MenuItem value="">Select Employment</MenuItem>
@@ -366,6 +372,13 @@ export default function DoctorForm(props) {
                       employmentTypes.map(item => <MenuItem value={item.ID} key={item.ID}>{item.name}</MenuItem>)
                     }
                   </TextField>
+                </div>
+                   <div>
+                  <TextField
+                    size="small" name="consultation_fee" value={form.consultation_fee} onChange={handleChange}
+                    label="Consultation Fee" type="number" 
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none focus:ring-2 focus:ring-sky-500"
+                  />
                 </div>
               </div>
             </section>

@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCatalogsDetail } from "../../state/labTestCatalogsSlice";
 import { setMedicinesDetail } from "../../state/medicineSlice";
+import { toast } from "react-toastify";
 
 
 export default function DoctorDashboard() {
@@ -23,9 +24,6 @@ export default function DoctorDashboard() {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    //bgcolor: 'background.paper',
-    // border: '2px solid #000',
-    //boxShadow: 24,
     p: 4,
   };
 
@@ -106,7 +104,6 @@ export default function DoctorDashboard() {
   //   { patient: 'John Peter', age: 8, visitType: 'Follow-up', time: '09:30 AM', status: 'In Room', complaint: 'Cough review' },
   // ]
 
-
   const todayQueue = entities && entities.length ? entities.map(ent => (
 
     {
@@ -117,7 +114,9 @@ export default function DoctorDashboard() {
       visitType: ent?.AppointmentType.name,
       time: getTimeFromDate(ent?.appointment_date),
       status: ent?.PatientActivity.name,
-      complaint: ent?.appointment_reason
+      complaint: ent?.appointment_reason,
+      payment_status: ent?.PaymentStatus.name,
+      payment_status_id: ent?.pyament_status
     }
   )
   )
@@ -156,11 +155,17 @@ export default function DoctorDashboard() {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const handleOpenPatient = id => {
-    user.setState({ action: 4, entity_id: id, component: 'patientview' })
-    navigate('/patientview', { replace: true })
-  }
+  const handleOpenPatient = (id, paymentStatus) => {
 
+    if (paymentStatus === 2 || paymentStatus === 4 || paymentStatus ==6) {
+      user.setState({ action: 4, entity_id: id, component: 'patientview' })
+    navigate('/patientview', { replace: true })
+     }else{
+      toast.error('Appointment fee is not paid!')
+      return
+     }
+    
+  }
   const getStatusClasses = (status) => {
     if (status === 'Waiting') {
       return 'bg-amber-50 text-amber-700 border border-amber-200';
@@ -172,6 +177,14 @@ export default function DoctorDashboard() {
       return 'bg-sky-50 text-sky-700 border border-sky-200';
     }
     return 'bg-slate-50 text-slate-700 border border-slate-200';
+  };
+  const getPaymentStatusClasses = (status) => {
+ 
+    if (status === 2 || status === 4 || status ==6) {
+      return 'bg-sky-50 text-sky-700 border border-sky-200';
+    }else {
+       return 'bg-amber-50 text-amber-700 border border-amber-200';
+    }
   };
 
   return (
@@ -233,35 +246,43 @@ export default function DoctorDashboard() {
                     <th className="px-6 py-4 text-left font-semibold">Patient</th>
                     <th className="px-6 py-4 text-left font-semibold">Visit Type</th>
                     <th className="px-6 py-4 text-left font-semibold">Time</th>
-                    <th className="px-6 py-4 text-left font-semibold">Complaint</th>
                     <th className="px-6 py-4 text-left font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left font-semibold">Payment Status</th>
+
                     <th className="px-6 py-4 text-left font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedQueue.map((item) => (
-                    <tr key={item.patient + item.time} className="border-t border-slate-100 hover:bg-slate-50">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-slate-900">{item.patient}</div>
-                        <div className="mt-1 text-xs text-slate-500">Age: {item.age}</div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-700">{item.visitType}</td>
-                      <td className="px-6 py-4 text-slate-700">{item.time}</td>
-                      <td className="px-6 py-4 text-slate-700">{item.complaint}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 hover:bg-sky-100"
-                          onClick={() => handleOpenPatient(item.id)}
-                        >
-                          Opens
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+
+                  {
+
+                    paginatedQueue.map((item) => (
+                      <tr key={item.patient + item.time} className="border-t border-slate-100 hover:bg-slate-50">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-slate-900">{item.patient}</div>
+                          <div className="mt-1 text-xs text-slate-500">Age: {item.age}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-700">{item.visitType}</td>
+                        <td className="px-6 py-4 text-slate-700">{item.time}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-700">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getPaymentStatusClasses(item.payment_status_id)}`}>
+                        {item.payment_status} 
+                      </span> 
+                          </td>
+                        <td className="px-6 py-4">
+                          <button className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 hover:bg-sky-100"
+                            onClick={() => handleOpenPatient(item.id, item.payment_status_id)}
+                          >
+                            Opens
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

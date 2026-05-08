@@ -3,3 +3,7 @@ cd my-project
 npm install
 
 npm install tailwindcss @tailwindcss/vite
+
+
+// install Tiptap rich text editor
+npm install @tiptap/react @tiptap/pm @tiptap/starter-kit

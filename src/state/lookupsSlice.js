@@ -10,6 +10,7 @@ const initialState = {
     payment_statuses: [],
     countries: [],
     contact_types: [],
+    default_roles: [],
 
     appointment_statuses: [],
     appointment_types: [],
@@ -29,7 +30,8 @@ const initialState = {
     lab_test_categories: [],
     lab_result_statuses: [],
     MedicineForms: [],
-    prescription_statuses: []
+    prescription_statuses: [],
+    branches: []
 }
 
 

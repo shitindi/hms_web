@@ -12,6 +12,7 @@ import { Link, useLocation } from 'react-router-dom';
 import DoctorMenu from './toolmenus/DoctorMenu';
 import AppointmentMenu from './toolmenus/AppointmentMenu';
 import { Avatar, Box, Button, IconButton, Menu, MenuItem, Tooltip, Typography } from '@mui/material';
+import UserMenu from './toolmenus/UserMenu';
 
 const Toolbox = () => {
 
@@ -68,12 +69,19 @@ const Toolbox = () => {
      {
         case 'home':
           return
+          break;
         case 'patients':
           return <PatientMenu data={userContext.state} />
+          break
          case 'doctors':
           return <DoctorMenu data={userContext.state} />
+          break
           case 'appointments':
           return <AppointmentMenu data={userContext.state} />
+          break
+        case 'staffs':
+          return <UserMenu data={userContext.state} />
+          break
         default:
          // return <PatientMenu />    
      }
@@ -138,7 +146,7 @@ const Toolbox = () => {
 
               <MenuItem onClick={handleCloseUserMenu} component={Link} to='/profile'>
               <ProfileIcon />
-                <Typography sx={{ textAlign: 'center' , marginLeft: 1}}>My Profile</Typography>
+                <Typography sx={{ textAlign: 'center' , marginLeft: 1}}>{userInfo.userName.split('@')[0]}</Typography>
               </MenuItem>
               <hr style={{width: '180px'}} />
               <MenuItem onClick={handleCloseUserMenu} component={Link} to='/logout'>

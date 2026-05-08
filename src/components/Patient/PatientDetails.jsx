@@ -6,12 +6,15 @@ import { BounceLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { getAgeFromBod } from "../../Utilities/DateTime";
-import VitalsMeasurement from "../VitalMeasurement";
+import VitalsMeasurement from "../Patient/VitalMeasurement";
 import ModalContainer from "../ModalContainer";
 import PatientMedicalHistory from "./PatientMedicalHistory";
 import LabTestSelector from "../Doctor/LabTestSelector";
 import LabResults from "./LabResults";
 import PrescriptionSelector from "../Doctor/PrescriptionSelector";
+import PrescriptionResults from "./PrescriptionResults";
+import RichTextEditor from "../RichTextEditor";
+import PreDiagnosisForm from "../Doctor/PreDiagnosisForm";
 
 export default function PatientDetails() {
   const user = useContext(UserContext)
@@ -19,6 +22,11 @@ export default function PatientDetails() {
   const axios = useAxiosPrivate()
   const [entity, setEntity] = useState({})
   const [modalOpen, setModalOpen] = useState(false)
+
+  const [result, setResult] = useState([])
+  const [prescResult, setPrescResult] = useState([])
+
+  const [visitHistory, setVisitHistory] = useState([])
   const [modal, setModal] = useState(
     {
       Component: null,
@@ -26,6 +34,7 @@ export default function PatientDetails() {
     }
   )
   const [vital, setVital] = useState({})
+  
   const style = {
     position: 'absolute',
     top: '50%',
@@ -35,6 +44,7 @@ export default function PatientDetails() {
   };
 
   useEffect(() => {
+
 
     if (user.state.component !== 'patientview' && user.state.entity_id < 1) {
       // user.setState({component: 'home', action: 4})
@@ -52,11 +62,19 @@ export default function PatientDetails() {
 
           setEntity(entityResult.data)
           setVital({ ...(entityResult.data?.PatientVital ?? {}), apointment_id: user.state.entity_id })
+          setResult(entityResult.data?.LabReqests ?? [])
+          setPrescResult(entityResult.data?.Prescription)
           window.scrollTo(0, 0)
         } else {
 
           const message = 'Unable to get list of items: error - ' + entityResult.status
           toast.error(message)
+        }
+        const patientId = entityResult.data?.patient_id ?? -1
+        const visitHistoryApi = await axios.get(`/appointments/visit-history/${patientId}`)
+        if (visitHistoryApi.status === 200) {
+
+          setVisitHistory(visitHistoryApi.data)
         }
       } catch (err) {
         console.error('CATCH: ', err)
@@ -67,8 +85,9 @@ export default function PatientDetails() {
     }
 
     fetchAppoitments()
-  }, [])
 
+    // fetchUIdata()
+  }, [])
 
   const getStatusClasses = (status) => {
     if (status === 'Active' || status === 'Reviewed' || status === 'Current Visit') {
@@ -119,17 +138,13 @@ export default function PatientDetails() {
         success = true
         message = 'Appointment started successfuly!'
 
-        //setApiMessage({ success, message })
         toast.success(message)
-        //setEditForm()
-        // dispatch(resetAppointments())
-        //  user.setState({ ...user.state, action: 4 })
-        // navigate('/appointments', { replace: true })
+
         setEntity(prev =>
           prev.map(app =>
 
             app.id === entity.id ?
-              { ...app,  current_activity: 4 }
+              { ...app, current_activity: 4 }
               : app
 
           )
@@ -146,6 +161,13 @@ export default function PatientDetails() {
       const message = 'ERROR: ' + err.response.data.error.message
       toast.error(message)
     }
+  }
+
+  const handleInitialAssessment = () => {
+        setModal({
+      Component: PreDiagnosisForm,
+      modelOpen: true
+    })
   }
 
   const handleEditVital = () => {
@@ -169,7 +191,6 @@ export default function PatientDetails() {
     })
   }
 
-
   const patient = {
     id: entity?.Patient?.registration_no ?? 'not set',
     name: entity?.Patient?.Contact?.first_name + ' ' + entity?.Patient?.Contact?.last_name,
@@ -186,6 +207,7 @@ export default function PatientDetails() {
     status: entity?.Patient?.CurrentActivity?.name,
     insurance: entity?.Patient?.Insurer?.name ?? 'Cash',
     emergencyContact: `${entity?.Patient?.next_kin_name} • ${entity?.Patient?.next_kin_phone}`,
+    visitReason:  entity?.appointment_reason
   };
 
 
@@ -194,45 +216,6 @@ export default function PatientDetails() {
     { label: 'Blood Pressure', value: `${vital?.bp_systolic ?? 0}/${vital?.bp_diastolic ?? 0} mmHg` },
     { label: 'Pulse Rate', value: `${vital?.pulse_rate ?? 0} bpm` },
     { label: 'Weight', value: `${vital?.weight_kg ?? 0} kg` },
-  ];
-
-  const visits = [
-    {
-      date: '27 Mar 2026',
-      doctor: 'Dr. Michael',
-      department: 'General Medicine',
-      diagnosis: 'Malaria - uncomplicated',
-      status: 'Current Visit',
-    },
-    {
-      date: '14 Feb 2026',
-      doctor: 'Dr. Esther',
-      department: 'Orthopedics',
-      diagnosis: 'Lower back pain',
-      status: 'Completed',
-    },
-    {
-      date: '05 Jan 2026',
-      doctor: 'Dr. Joseph',
-      department: 'Cardiology',
-      diagnosis: 'Routine review',
-      status: 'Completed',
-    },
-  ];
-
-  const prescriptions = [
-    {
-      drug: 'Artemether/Lumefantrine',
-      dosage: '4 tablets twice daily for 3 days',
-      prescribedBy: 'Dr. Michael',
-      date: '27 Mar 2026',
-    },
-    {
-      drug: 'Paracetamol 500mg',
-      dosage: '1 tablet every 8 hours for 5 days',
-      prescribedBy: 'Dr. Michael',
-      date: '27 Mar 2026',
-    },
   ];
 
 
@@ -247,7 +230,7 @@ export default function PatientDetails() {
     <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-4">
       {modal.Component && <ModalContainer
         Component={modal.Component}
-        entity={vital}
+        entity={entity}
         modalOpen={modal.modelOpen}
         setModal={setModal}
       />}
@@ -299,7 +282,7 @@ export default function PatientDetails() {
                     </div>
                     <p className="mt-1 text-sm text-slate-500">Patient ID: {patient.id}</p>
                     <p className="mt-2 text-sm text-slate-600">
-                      {patient.gender} • {patient.age} years • DOB: {patient.dateOfBirth}
+                      {patient.gender} • {patient.age} years • DoB: {patient.dateOfBirth}
                     </p>
                   </div>
                 </div>
@@ -312,6 +295,10 @@ export default function PatientDetails() {
                   <div className="rounded-2xl bg-slate-50 p-4">
                     <div className="font-medium text-slate-800">Doctor</div>
                     <div className="mt-1">{patient.doctor}</div>
+                  </div>
+                  <div className="rounded-2xl bg-slate-50 p-4 col-span-2">
+                    <div className="font-medium text-slate-800">Complaint</div>
+                    <div className="mt-1">{patient.visitReason}</div>
                   </div>
                 </div>
               </div>
@@ -353,28 +340,17 @@ export default function PatientDetails() {
                 <h2 className="text-xl font-semibold text-slate-900">Visit History</h2>
               </div>
               <div className="overflow-x-auto">
-                <PatientMedicalHistory />
+                <PatientMedicalHistory historyData={visitHistory} />
               </div>
             </section>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">Prescriptions</h2>
-                <div className="mt-5 space-y-4">
-                  {prescriptions.map((item) => (
-                    <div key={item.drug + item.date} className="rounded-2xl border border-slate-200 p-4">
-                      <div className="font-semibold text-slate-900">{item.drug}</div>
-                      <div className="mt-1 text-sm text-slate-600">{item.dosage}</div>
-                      <div className="mt-2 text-xs text-slate-500">
-                        {item.prescribedBy} • {item.date}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <PrescriptionResults result={prescResult} />
               </section>
 
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <LabResults appointmentId={user.state.entity_id} />
+                <LabResults result={result} />
               </section>
             </div>
           </div>
@@ -403,23 +379,26 @@ export default function PatientDetails() {
                 <button className={selectButtonStyle(true)} onClick={handleBeginConsultation}>
                   Start Consultation
                 </button>
+                <button className={selectButtonStyle()} onClick={handleInitialAssessment}>
+                  Initial Assessment
+                </button>
                 <button className={selectButtonStyle()} onClick={handleEditVital}>
                   Vitals details
                 </button>
-                 <button className={selectButtonStyle()} onClick={handleAddLabRequest}>
+                <button className={selectButtonStyle()} onClick={handleAddLabRequest}>
                   Request Lab Test
                 </button>
                 <button className={selectButtonStyle()} onClick={handleAddPrescription}>
                   Add Prescription
                 </button>
-               
+
                 <button className={selectButtonStyle()}>
                   Book Follow-up
                 </button>
 
               </div>
             </section>
-       
+
           </div>
         </section>
       </div>

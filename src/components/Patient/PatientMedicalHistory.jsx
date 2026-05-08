@@ -12,40 +12,54 @@ import {
   Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { getJSDateFromDb } from "../../Utilities/DateTime";
 
-export default function PatientMedicalHistory() {
-  const visits = [
-    {
-      appointmentDate: "27 Mar 2026",
-      complaint: "Fever, headache, and body weakness for 2 days",
-      doctorName: "Dr. Michael",
-      department: "General Medicine",
-      doctorSuggestion:
-        "Start antimalarial treatment, encourage hydration, and schedule follow-up after medication completion.",
-      labTests: ["Malaria Rapid Test", "Full Blood Count"],
-      medicines: ["Artemether/Lumefantrine", "Paracetamol 500mg"],
-    },
-    {
-      appointmentDate: "14 Feb 2026",
-      complaint: "Lower back pain after prolonged standing",
-      doctorName: "Dr. Esther",
-      department: "Orthopedics",
-      doctorSuggestion:
-        "Use pain relief medication, avoid strain, and begin physiotherapy-guided exercises.",
-      labTests: ["Lumbar X-ray"],
-      medicines: ["Ibuprofen 400mg", "Muscle Relaxant"],
-    },
-    {
-      appointmentDate: "05 Jan 2026",
-      complaint: "Routine cardiac follow-up review",
-      doctorName: "Dr. Joseph",
-      department: "Cardiology",
-      doctorSuggestion:
-        "Continue observation, maintain lifestyle advice, and return for routine review if symptoms appear.",
-      labTests: ["ECG"],
-      medicines: ["No new medication prescribed"],
-    },
-  ];
+export default function PatientMedicalHistory({ historyData }) {
+
+  const visits = !(historyData && historyData.length) ? []
+    :
+    historyData.map(history => {
+      const contact = history?.Doctor?.User?.Contact
+      let tests = [] 
+      let medics = []
+      if ( history?.Prescription && history?.Prescription?.length > 0){
+        history.Prescription.forEach(med => medics.push(med.Medicine.name))
+      }else{
+        medics.push('No prescription')
+      }
+
+      if (  history?.LabReqests &&  history?.LabReqests?.length  > 0){
+          history.LabReqests.forEach( req => tests.push(req.TestCatalog.test_name))
+      }else{
+        tests.push('No test')
+      }
+      return {
+
+        appointmentDate: getJSDateFromDb( history?.appointment_date).toDateString(),
+        complaint: history?.appointment_reason,
+        doctorName: 'Dr. ' + contact?.first_name + ', ' + contact.last_name,
+        department: history?.Department.name,
+        doctorSuggestion: 'Will be implemented',
+        labTests: tests,
+        medicines:medics,
+      }
+    }
+    )
+
+
+  // [
+  //   {
+  //     appointmentDate: "27 Mar 2026",
+  //     complaint: "Fever, headache, and body weakness for 2 days",
+  //     doctorName: "Dr. Michael",
+  //     department: "General Medicine",
+  //     doctorSuggestion:
+  //       "Start antimalarial treatment, encourage hydration, and schedule follow-up after medication completion.",
+  //     labTests: ["Malaria Rapid Test", "Full Blood Count"],
+  //     medicines: ["Artemether/Lumefantrine", "Paracetamol 500mg"],
+  //   },
+
+  // ];
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
